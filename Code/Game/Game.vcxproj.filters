@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Gameplay">
+      <UniqueIdentifier>{747dda89-9810-40f6-8958-da309ef5a00f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{11c0b65c-5e6f-4a69-a116-4f36bb4d93a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Event">
+      <UniqueIdentifier>{b2e0f5ab-fe41-42ee-8bde-bb2513a77d37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gameplay\Events">
+      <UniqueIdentifier>{12942f1b-b419-417b-8ca4-e491286df2e2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Game.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="GameCommon.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="App.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Main_Windows.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Prop.cpp" />
+    <ClCompile Include="Entity.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Game.hpp">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="GameCommon.hpp">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="App.hpp">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineBuildPreferences.hpp">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.hpp" />
+    <ClInclude Include="Player.hpp" />
+    <ClInclude Include="Prop.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Run\Shaders\Default.hlsl" />
+  </ItemGroup>
+</Project>
