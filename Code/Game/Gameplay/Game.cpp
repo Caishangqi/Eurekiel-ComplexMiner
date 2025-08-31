@@ -23,7 +23,6 @@
 #include "Engine/Resource/ResourceCommon.hpp"
 #include "Engine/Audio/AudioSubsystem.hpp"
 #include "Engine/Core/Yaml.hpp"
-#include "Game/Framework/World/ChunkSubsystem.hpp"
 
 
 Game::Game()
@@ -215,7 +214,6 @@ void Game::Render() const
     if (!m_isInMainMenu)
     {
         m_player->Render();
-        g_theChunk->Render();
         /// Grid
         RenderGrids();
         /// Props
