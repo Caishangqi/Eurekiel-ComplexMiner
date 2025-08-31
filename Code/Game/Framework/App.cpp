@@ -24,7 +24,7 @@
 
 // Console system integration
 #include "Engine/Core/Console/ConsoleSubsystem.hpp"
-#include "World/ChunkSubsystem.hpp"
+// #include "World/ChunkSubsystem.hpp"  // TODO: Replace with new voxel system
 
 // Windows API for testing
 #ifdef _WIN32
@@ -39,7 +39,7 @@ InputSystem*                                   g_theInput    = nullptr;
 AudioSubsystem*                                g_theAudio    = nullptr;
 Game*                                          g_theGame     = nullptr;
 enigma::resource::ResourceSubsystem*           g_theResource = nullptr;
-simpleminer::framework::world::ChunkSubsystem* g_theChunk    = nullptr;
+// simpleminer::framework::world::ChunkSubsystem* g_theChunk    = nullptr;  // TODO: Replace with new voxel system
 
 App::App()
 {
@@ -124,15 +124,16 @@ void App::Startup(char*)
     GEngine->RegisterSubsystem(std::move(audioSubsystem));
 
     // Create ChunkSubsystem with configuration
-    using namespace simpleminer::framework::world;
-    ChunkConfig chunkConfig;
-    auto        chunkSubsystem = std::make_unique<ChunkSubsystem>(chunkConfig);
-    GEngine->RegisterSubsystem(std::move(chunkSubsystem));
+    // TODO: Replace with new voxel system
+    // using namespace simpleminer::framework::world;
+    // ChunkConfig chunkConfig;
+    // auto        chunkSubsystem = std::make_unique<ChunkSubsystem>(chunkConfig);
+    // GEngine->RegisterSubsystem(std::move(chunkSubsystem));
 
     // Set up global pointers for legacy compatibility
     g_theResource = GEngine->GetSubsystem<ResourceSubsystem>();
     g_theAudio    = GEngine->GetSubsystem<AudioSubsystem>();
-    g_theChunk    = GEngine->GetSubsystem<ChunkSubsystem>();
+    // g_theChunk    = GEngine->GetSubsystem<ChunkSubsystem>();  // TODO: Replace with new voxel system
 
     g_theEventSystem->Startup();
 
