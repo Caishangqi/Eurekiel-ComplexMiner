@@ -24,6 +24,7 @@
 
 // Console system integration
 #include "Engine/Core/Console/ConsoleSubsystem.hpp"
+#include "Engine/Registry/Core/RegisterSubsystem.hpp"
 // #include "World/ChunkSubsystem.hpp"  // TODO: Replace with new voxel system
 
 // Windows API for testing
@@ -31,14 +32,14 @@
 #include <windows.h>
 #endif
 
-Window*                                        g_theWindow   = nullptr;
-IRenderer*                                     g_theRenderer = nullptr;
-App*                                           g_theApp      = nullptr;
-RandomNumberGenerator*                         g_rng         = nullptr;
-InputSystem*                                   g_theInput    = nullptr;
-AudioSubsystem*                                g_theAudio    = nullptr;
-Game*                                          g_theGame     = nullptr;
-enigma::resource::ResourceSubsystem*           g_theResource = nullptr;
+Window*                              g_theWindow   = nullptr;
+IRenderer*                           g_theRenderer = nullptr;
+App*                                 g_theApp      = nullptr;
+RandomNumberGenerator*               g_rng         = nullptr;
+InputSystem*                         g_theInput    = nullptr;
+AudioSubsystem*                      g_theAudio    = nullptr;
+Game*                                g_theGame     = nullptr;
+enigma::resource::ResourceSubsystem* g_theResource = nullptr;
 // simpleminer::framework::world::ChunkSubsystem* g_theChunk    = nullptr;  // TODO: Replace with new voxel system
 
 App::App()
@@ -95,6 +96,10 @@ void App::Startup(char*)
     using namespace enigma::core;
     using namespace enigma::resource;
 
+    // Create and register RegisterSubsystem first (needed for block registry)
+    auto registerSubsystem = std::make_unique<RegisterSubsystem>();
+    GEngine->RegisterSubsystem(std::move(registerSubsystem));
+
     // Create and register LoggerSubsystem first (highest priority)
     auto logger = std::make_unique<LoggerSubsystem>();
     GEngine->RegisterSubsystem(std::move(logger));
@@ -109,9 +114,7 @@ void App::Startup(char*)
     resourceConfig.enableHotReload  = true;
     resourceConfig.logResourceLoads = true;
     resourceConfig.printScanResults = true;
-    resourceConfig.AddNamespace("game", "game"); // Add custom namespaces
-    resourceConfig.AddNamespace("test", "test"); // Add custom namespaces
-    resourceConfig.EnableNamespacePreload("engine", {"sounds/*"}); // Enable preloading for all sounds
+    resourceConfig.AddNamespace("simpleminer", ""); // Add custom namespaces
 
     auto resourceSubsystem = std::make_unique<ResourceSubsystem>(resourceConfig);
     GEngine->RegisterSubsystem(std::move(resourceSubsystem));
