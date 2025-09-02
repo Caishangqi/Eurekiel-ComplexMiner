@@ -23,7 +23,9 @@
 #include "Engine/Resource/ResourceCommon.hpp"
 #include "Engine/Audio/AudioSubsystem.hpp"
 #include "Engine/Core/Yaml.hpp"
+#include "Engine/Core/Logger/LoggerAPI.hpp"
 #include "Engine/Voxel/World/World.hpp"
+#include "Engine/Registry/Block/BlockRegistry.hpp"
 
 
 Game::Game()
@@ -174,6 +176,9 @@ Game::Game()
     using enigma::core::YamlConfiguration;
     YamlConfiguration config = YamlConfiguration::LoadFromFile(".enigma/config/engine/module.yml");
     std::string       test   = config.GetString("moduleConfig.logger.globalLogLevel");
+
+    /// Block Registration Phase
+    InitializeBlocks();
 
     /// World Creation
     using namespace enigma::voxel::chunk;
@@ -377,6 +382,13 @@ void Game::HandleKeyBoardEvent(float deltaTime)
         }
     }
 
+    // Disable Chunk Debug Rendering
+    if (g_theInput->WasKeyJustPressed(0x72))
+    {
+        m_enableChunkDebug = !m_enableChunkDebug;
+        m_world->SetEnableChunkDebug(m_enableChunkDebug);
+    }
+
     if (g_theInput->WasKeyJustPressed('K'))
     {
         using namespace enigma::resource;
@@ -487,4 +499,44 @@ void Game::HandleEntityCollisions()
 
 void Game::GarbageCollection()
 {
+}
+
+void Game::InitializeBlocks()
+{
+    using namespace enigma::registry::block;
+
+    LogInfo("game", "Starting block registration phase...");
+
+    // Load blocks from the simpleminer namespace
+    std::filesystem::path dataPath      = ".enigma\\data";
+    std::string           namespaceName = "simpleminer";
+
+    //LogInfo("game", "Loading blocks from: %s / %s / block /", dataPath.string().c_str(), namespaceName.c_str());
+
+    // Load all blocks from the simpleminer namespace
+    BlockRegistry::LoadNamespaceBlocks(dataPath.string(), namespaceName);
+
+    // Print registered blocks for verification
+    //auto blockNames = BlockRegistry::GetBlockNames(namespaceName);
+    //LogInfo("game", "Registered %d blocks from namespace '%s':", blockNames.size(), namespaceName.c_str());
+
+    // Also check all blocks (without namespace filter)
+    /*
+    auto allBlockNames = BlockRegistry::GetBlockNames();
+    LogInfo("game", "Total registered blocks: %d", allBlockNames.size());
+    for (const auto& blockName : allBlockNames)
+    {
+        LogInfo("game", "  - Found block: %s", blockName.c_str());
+    }
+    */
+
+    /*for (const auto& blockName : blockNames)
+    {
+        auto block = BlockRegistry::GetBlock(namespaceName, blockName);
+        if (block)
+        {
+            LogInfo("game", "  - %s:%s (properties: %d, states: %d)", namespaceName.c_str(), blockName.c_str(), block->GetProperties().size(), block->GetStateCount());
+        }
+    }*/
+    LogInfo("game", "Block registration completed!");
 }

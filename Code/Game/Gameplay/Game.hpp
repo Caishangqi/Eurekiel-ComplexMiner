@@ -35,6 +35,9 @@ public:
     void UpdateWorld();
     void RenderWorld() const;
 
+    // Block Registration
+    void InitializeBlocks();
+
 private:
     void RenderEntities() const;
     void HandleEntityCollisions();
@@ -42,6 +45,7 @@ private:
 
 public:
     std::unique_ptr<enigma::voxel::world::World> m_world;
+    bool                                         m_enableChunkDebug = true;
 
 public:
     bool m_isInMainMenu = true;
