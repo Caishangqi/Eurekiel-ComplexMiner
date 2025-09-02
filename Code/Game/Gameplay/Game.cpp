@@ -23,6 +23,7 @@
 #include "Engine/Resource/ResourceCommon.hpp"
 #include "Engine/Audio/AudioSubsystem.hpp"
 #include "Engine/Core/Yaml.hpp"
+#include "Engine/Voxel/World/World.hpp"
 
 
 Game::Game()
@@ -173,6 +174,15 @@ Game::Game()
     using enigma::core::YamlConfiguration;
     YamlConfiguration config = YamlConfiguration::LoadFromFile(".enigma/config/engine/module.yml");
     std::string       test   = config.GetString("moduleConfig.logger.globalLogLevel");
+
+    /// World Creation
+    using namespace enigma::voxel::chunk;
+    using namespace enigma::voxel::world;
+    m_world = std::make_unique<World>("world", 0, std::make_unique<ChunkManager>());
+    m_world->LoadChunk(0, 0);
+    m_world->LoadChunk(2, 0);
+    m_world->LoadChunk(2, 1);
+    m_world->LoadChunk(2, -1);
 }
 
 Game::~Game()
@@ -214,6 +224,7 @@ void Game::Render() const
     if (!m_isInMainMenu)
     {
         m_player->Render();
+        RenderWorld();
         /// Grid
         RenderGrids();
         /// Props
@@ -284,6 +295,11 @@ void Game::Update()
         g_theInput->SetCursorMode(CursorMode::POINTER);
     }
 
+    if (m_isGameStart)
+    {
+        UpdateWorld();
+    }
+
     /// Player
     m_player->Update(Clock::GetSystemClock().GetDeltaSeconds());
     ///
@@ -330,6 +346,18 @@ void Game::Update()
     HandleKeyBoardEvent(deltaTime);
 
     GarbageCollection();
+}
+
+void Game::UpdateWorld()
+{
+    if (m_world)
+        m_world->Update(m_clock->GetDeltaSeconds());
+}
+
+void Game::RenderWorld() const
+{
+    if (m_world)
+        m_world->Render(g_theRenderer);
 }
 
 

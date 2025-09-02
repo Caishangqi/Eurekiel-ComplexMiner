@@ -2,6 +2,11 @@
 #include "../GameCommon.hpp"
 #include "Engine/Math/AABB2.hpp"
 
+namespace enigma::voxel::world
+{
+    class World;
+}
+
 class Player;
 class Clock;
 class Prop;
@@ -26,10 +31,17 @@ public:
     void RenderGrids() const;
     void RenderProps() const;
 
+    // World
+    void UpdateWorld();
+    void RenderWorld() const;
+
 private:
     void RenderEntities() const;
     void HandleEntityCollisions();
     void GarbageCollection();
+
+public:
+    std::unique_ptr<enigma::voxel::world::World> m_world;
 
 public:
     bool m_isInMainMenu = true;
