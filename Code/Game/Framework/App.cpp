@@ -18,6 +18,9 @@
 #include "Engine/Resource/ResourceSubsystem.hpp"
 #include "Engine/Resource/ResourceCommon.hpp"
 
+// Model system integration  
+#include "Engine/Model/ModelSubsystem.hpp"
+
 // Logger system integration
 #include "Engine/Core/Logger/Logger.hpp"
 #include "Engine/Core/Logger/LoggerAPI.hpp"
@@ -25,8 +28,6 @@
 // Console system integration
 #include "Engine/Core/Console/ConsoleSubsystem.hpp"
 #include "Engine/Registry/Core/RegisterSubsystem.hpp"
-// #include "World/ChunkSubsystem.hpp"  // TODO: Replace with new voxel system
-
 // Windows API for testing
 #ifdef _WIN32
 #include <windows.h>
@@ -118,6 +119,10 @@ void App::Startup(char*)
 
     auto resourceSubsystem = std::make_unique<ResourceSubsystem>(resourceConfig);
     GEngine->RegisterSubsystem(std::move(resourceSubsystem));
+
+    // Create ModelSubsystem (depends on ResourceSubsystem and RenderSubsystem)
+    auto modelSubsystem = std::make_unique<enigma::model::ModelSubsystem>();
+    GEngine->RegisterSubsystem(std::move(modelSubsystem));
 
     // Create AudioSubsystem with configuration
     AudioSystemConfig audioConfig;
