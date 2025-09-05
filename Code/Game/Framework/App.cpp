@@ -155,7 +155,11 @@ void App::Startup(char*)
     DebugRenderSystemStartup(debugRenderConfig);
 
     g_theGame = new Game();
-    g_rng     = new RandomNumberGenerator();
+
+    // Initialize blocks after subsystems are ready (Atlas is available)
+    g_theGame->InitializeBlocks();
+
+    g_rng = new RandomNumberGenerator();
 }
 
 void App::Shutdown()
