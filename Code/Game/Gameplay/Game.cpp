@@ -177,8 +177,8 @@ Game::Game()
     YamlConfiguration config = YamlConfiguration::LoadFromFile(".enigma/config/engine/module.yml");
     std::string       test   = config.GetString("moduleConfig.logger.globalLogLevel");
 
-    /// Block Registration Phase
-    InitializeBlocks();
+    /// Block Registration Phase - Moved to separate initialization method
+    // InitializeBlocks(); // This will be called explicitly from App after subsystems are ready
 
     /// World Creation
     using namespace enigma::voxel::chunk;
