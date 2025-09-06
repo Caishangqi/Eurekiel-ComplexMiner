@@ -26,6 +26,7 @@
 #include "Engine/Core/Logger/LoggerAPI.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
+#include "Engine/Model/ModelSubsystem.hpp"
 
 
 Game::Game()
@@ -177,13 +178,61 @@ Game::Game()
     YamlConfiguration config = YamlConfiguration::LoadFromFile(".enigma/config/engine/module.yml");
     std::string       test   = config.GetString("moduleConfig.logger.globalLogLevel");
 
-    /// Block Registration Phase - Moved to separate initialization method
-    // InitializeBlocks(); // This will be called explicitly from App after subsystems are ready
+    /// Block Registration Phase - MUST happen before World creation
+    InitializeBlocks();
 
-    /// World Creation
+    /// Model Compilation Check - Verify that block models were compiled during registration
+    auto* modelSubsystem = GEngine->GetSubsystem<enigma::model::ModelSubsystem>();
+    if (modelSubsystem)
+    {
+        enigma::core::LogInfo("game", "Checking block model compilation status...");
+
+        // Only compile models that weren't already compiled during registration
+        auto allBlocks      = enigma::registry::block::BlockRegistry::GetAllBlocks();
+        int  totalStates    = 0;
+        int  compiledStates = 0;
+
+        for (const auto& block : allBlocks)
+        {
+            auto states = block->GetAllStates();
+            totalStates += static_cast<int>(states.size());
+
+            for (auto* state : states)
+            {
+                if (state && state->GetRenderMesh())
+                {
+                    compiledStates++;
+                }
+            }
+        }
+
+        enigma::core::LogInfo("game", "Block model status: %d/%d states have compiled models", compiledStates, totalStates);
+
+        // Only run automatic compilation if some models are missing
+        if (compiledStates < totalStates)
+        {
+            enigma::core::LogInfo("game", "Running automatic compilation for missing models...");
+            modelSubsystem->CompileAllBlockModels();
+        }
+        else
+        {
+            enigma::core::LogInfo("game", "All block models already compiled during registration - skipping automatic compilation");
+        }
+    }
+    else
+    {
+        enigma::core::LogError("game", "ModelSubsystem not available - block models will not be compiled!");
+    }
+
+    /// World Creation  
     using namespace enigma::voxel::chunk;
     using namespace enigma::voxel::world;
-    m_world = std::make_unique<World>("world", 0, std::make_unique<ChunkManager>());
+
+    // Create ChunkManager and initialize it with resource caching (NeoForge pattern)
+    auto chunkManager = std::make_unique<ChunkManager>();
+    chunkManager->Initialize(); // Cache atlas textures to avoid per-frame queries
+
+    m_world = std::make_unique<World>("world", 0, std::move(chunkManager));
     m_world->LoadChunk(0, 0);
     m_world->LoadChunk(2, 0);
     m_world->LoadChunk(2, 1);
