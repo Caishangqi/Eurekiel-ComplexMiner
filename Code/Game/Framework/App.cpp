@@ -156,9 +156,6 @@ void App::Startup(char*)
 
     g_theGame = new Game();
 
-    // Initialize blocks after subsystems are ready (Atlas is available)
-    g_theGame->InitializeBlocks();
-
     g_rng = new RandomNumberGenerator();
 }
 
