@@ -1,18 +1,44 @@
 ﻿#include "Player.hpp"
 
-#include "GameCommon.hpp"
+#include "../../GameCommon.hpp"
 #include "Engine/Core/EngineCommon.hpp"
-#include "Engine/Core/StringUtils.hpp"
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#include "Game/Framework/GUISubsystem.hpp"
+#include "Game/Gameplay/Game.hpp"
+#include "Game/Gameplay/gui/GUICrosser.hpp"
 
-Player::Player(Game* owner): Entity(owner)
+bool Player::Event_Player_Join_World(EventArgs& args)
+{
+    UNUSED(args)
+    std::shared_ptr<GUI> gui = g_theGUI->GetGUI(std::type_index(typeid(GUICrosser)));
+    if (!gui)
+    {
+        g_theGUI->AddToViewPort(std::make_shared<GUICrosser>(g_theGame->m_player));
+    }
+    return false;
+}
+
+bool Player::Event_Player_Quit_World(EventArgs& args)
+{
+    UNUSED(args)
+    std::shared_ptr<GUI> gui = g_theGUI->GetGUI(std::type_index(typeid(GUICrosser)));
+    if (gui)
+        g_theGUI->RemoveFromViewPort(gui);
+    return false;
+}
+
+Player::Player(Game* owner) : Entity(owner)
 {
     m_camera         = new Camera();
     m_camera->m_mode = eMode_Perspective;
     m_camera->SetOrthographicView(Vec2(-1, -1), Vec2(1, 1));
+
+    // Event Subscribe
+    g_theEventSystem->SubscribeEventCallbackFunction("Event.PlayerJoinWorld", Event_Player_Join_World);
+    g_theEventSystem->SubscribeEventCallbackFunction("Event.PlayerQuitWorld", Event_Player_Quit_World);
 }
 
 Player::~Player()
@@ -30,7 +56,7 @@ void Player::Update(float deltaSeconds)
     m_orientation.m_pitchDegrees += -cursorDelta.y * 0.125f;
 
     const XboxController& controller = g_theInput->GetController(0);
-    float                 speed      = 2.0f;
+    float                 speed      = 4.0f;
 
     Vec2  leftStickPos  = controller.GetLeftStick().GetPosition();
     Vec2  rightStickPos = controller.GetRightStick().GetPosition();
@@ -47,7 +73,7 @@ void Player::Update(float deltaSeconds)
 
     if (g_theInput->IsKeyDown(KEYCODE_LEFT_SHIFT) || controller.IsButtonDown(XBOX_BUTTON_A))
     {
-        speed *= 10.f;
+        speed *= 20.f;
     }
 
     m_orientation.m_rollDegrees += leftTrigger * 0.125f * deltaSeconds * speed;
@@ -108,7 +134,7 @@ void Player::Update(float deltaSeconds)
         m_position.z += deltaSeconds * speed;
     }
 
-    m_camera->SetPerspectiveView(2.0f, 60.f, 0.1f, 100.f);
+    m_camera->SetPerspectiveView(2.0f, 60.f, 0.1f, 400.f);
     Mat44 ndcMatrix;
     ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
 
@@ -117,7 +143,7 @@ void Player::Update(float deltaSeconds)
 
 
     m_camera->SetCameraToRenderTransform(ndcMatrix);
-    
+
     Entity::Update(deltaSeconds);
 }
 

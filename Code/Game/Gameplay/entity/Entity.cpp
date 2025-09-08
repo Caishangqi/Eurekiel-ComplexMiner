@@ -2,7 +2,7 @@
 
 #include "Engine/Core/EngineCommon.hpp"
 
-Entity::Entity(Game* owner): m_game(owner)
+Entity::Entity(Game* owner) : m_game(owner)
 {
 }
 
