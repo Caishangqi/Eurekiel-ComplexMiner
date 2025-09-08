@@ -1,9 +1,12 @@
 ﻿#pragma once
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/Rgba8.hpp"
+#include "Engine/Core/Yaml.hpp"
 
 class Window;
 class Game;
+
+static enigma::core::YamlConfiguration settings;    // Minecraft Style global configuration
 
 // Forward declaration for resource system
 namespace enigma::resource
@@ -29,6 +32,8 @@ public:
     void AdjustForPauseAndTimeDistortion();
     void HandleKeyBoardEvent();
 
+    void LoadConfigurations();
+
     /// Event Handle
     static bool Event_ConsoleStartup(EventArgs& args);
     /// 
@@ -39,11 +44,6 @@ private:
 
     void Render() const;
     void EndFrame();
-
-    /// TinyXML2 to parse the (newly-created) file Data/GameConfig.xml (if it exists), and populate the game config
-    /// blackboard from that file’s root XML element’s attributes. Each game project should have its own GameConfig.xml
-    /// file;
-    void LoadGameConfig(const char* filename);
 
 public:
     bool  m_isQuitting       = false;

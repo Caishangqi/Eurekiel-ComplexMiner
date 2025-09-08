@@ -1,0 +1,5 @@
+general:
+  placeholder: true;
+video:
+  windowMode: fullScreen
+  gameResolution: 1600,800 # Develop console will use this resolution too

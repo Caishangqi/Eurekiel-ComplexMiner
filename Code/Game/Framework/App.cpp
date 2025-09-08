@@ -29,6 +29,10 @@
 #include "GUISubsystem.hpp"
 #include "Engine/Core/Console/ConsoleSubsystem.hpp"
 #include "Engine/Registry/Core/RegisterSubsystem.hpp"
+
+// Window configuration parser
+#include "WindowConfigParser.hpp"
+
 // Windows API for testing
 #ifdef _WIN32
 #include <windows.h>
@@ -59,9 +63,7 @@ void App::Startup(char*)
     using namespace enigma::resource;
 
     // Load Game Config
-    LoadGameConfig(".enigma/config/GameConfig.xml");
-    m_consoleSpace.m_mins = Vec2::ZERO;
-    m_consoleSpace.m_maxs = Vec2(g_gameConfigBlackboard.GetValue("screenSizeX", 1600.f), g_gameConfigBlackboard.GetValue("screenSizeY", 800.f));
+    LoadConfigurations();
 
     EventSystemConfig eventSystemConfig;
     g_theEventSystem = new EventSystem(eventSystemConfig);
@@ -72,10 +74,9 @@ void App::Startup(char*)
     InputSystemConfig inputConfig;
     g_theInput = new InputSystem(inputConfig);
 
-    WindowConfig windowConfig;
-    windowConfig.m_aspectRatio = 2.f;
+    // Load window configuration from settings.yml
+    WindowConfig windowConfig  = WindowConfigParser::LoadFromYaml(".enigma/settings.yml");
     windowConfig.m_inputSystem = g_theInput;
-    windowConfig.m_windowTitle = "SimpleMiner";
     g_theWindow                = new Window(windowConfig);
 
     RenderConfig renderConfig;
@@ -87,11 +88,15 @@ void App::Startup(char*)
     DebugRenderConfig debugRenderConfig;
     debugRenderConfig.m_renderer = g_theRenderer;
 
+    m_consoleSpace.m_mins   = Vec2::ZERO;
+    m_consoleSpace.m_maxs.x = (float)windowConfig.m_resolution.x;
+    m_consoleSpace.m_maxs.y = (float)windowConfig.m_resolution.y;
+
     DevConsoleConfig consoleConfig;
     consoleConfig.renderer         = g_theRenderer;
     consoleConfig.m_camera         = new Camera();
     consoleConfig.m_camera->m_mode = eMode_Orthographic;
-    consoleConfig.m_camera->SetOrthographicView(m_consoleSpace.m_mins, m_consoleSpace.m_maxs);
+    consoleConfig.m_camera->SetOrthographicView(m_consoleSpace.m_mins, m_consoleSpace.m_maxs); // TODO: Consider use Client Dimension fetch from Windows, after windows startup
     g_theDevConsole = new DevConsole(consoleConfig);
 
     // Register Engine subsystems
@@ -147,11 +152,11 @@ void App::Startup(char*)
 
     // Start Engine subsystems first (includes ConsoleSubsystem)
 
-
-    g_theDevConsole->Startup();
-    g_theInput->Startup();
     g_theWindow->Startup();
     g_theRenderer->Startup();
+    g_theDevConsole->Startup();
+    g_theInput->Startup();
+
     GEngine->Startup();
     DebugRenderSystemStartup(debugRenderConfig);
 
@@ -259,6 +264,11 @@ void App::HandleKeyBoardEvent()
     }
 }
 
+void App::LoadConfigurations()
+{
+    settings = YamlConfiguration::LoadFromFile(".enigma/settings.yml");
+}
+
 bool App::Event_ConsoleStartup(EventArgs& args)
 {
     UNUSED(args)
@@ -270,18 +280,11 @@ bool App::Event_ConsoleStartup(EventArgs& args)
                              "Mouse   - Aim\n"
                              "W/A     - Move\n"
                              "S/D     - Strafe\n"
-                             "Q/E     - Roll\n"
-                             "Z/C     - Elevate\n"
+                             "Q/E     - Down | Up\n"
                              "Shift   - Sprint\n"
-                             "1       - Spawn Line\n"
-                             "2       - Spawn Point\n"
-                             "3       - Spawn Wireframe Sphere\n"
-                             "4       - Spawn Basis\n"
-                             "5       - Spawn Billboarded Text\n"
-                             "6       - Spawn Wireframe Cylinder\n"
-                             "7       - Add Message\n"
-                             "H       - Reset position and orientation to zero\n"
-                             "N       - Start the Game (In Menu)\n"
+                             "F8      - Reload the Game\n"
+                             "F3      - Toggle Chunk Pool Statistic\n"
+                             "F3 + G  - Toggle Chunk Boarder\n"
                              "ESC     - Quit\n"
                              "P       - Pause the Game\n"
                              "O       - Step single frame\n"
@@ -399,29 +402,6 @@ void App::EndFrame()
         // Restore state
         m_isPendingRestart = false;
         m_isPaused         = false;
-    }
-}
-
-void App::LoadGameConfig(const char* filename)
-{
-    XmlDocument gameConfigXml;
-    XmlResult   result = gameConfigXml.LoadFile(filename);
-    if (result == XmlResult::XML_SUCCESS)
-    {
-        XmlElement* rootElement = gameConfigXml.RootElement();
-        if (rootElement)
-        {
-            g_gameConfigBlackboard.PopulateFromXmlElementAttributes(*rootElement);
-            DebuggerPrintf("[SYSTEM]    Game config from file \"%s\" was loaded\n", filename);
-        }
-        else
-        {
-            DebuggerPrintf("[SYSTEM]    Game config from file \"%s\"was invalid (missing root element)\n", filename);
-        }
-    }
-    else
-    {
-        DebuggerPrintf("[SYSTEM]    Failed to load game config from file \"%s\"\n", filename);
     }
 }
 

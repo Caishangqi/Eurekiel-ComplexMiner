@@ -237,6 +237,7 @@
         <Content Include="..\..\Run\.enigma\data\Shaders\Diffuse.hlsl" />
         <ClCompile Include="Framework\App.cpp"/>
         <ClCompile Include="Framework\GUISubsystem.cpp"/>
+        <ClCompile Include="Framework\WindowConfigParser.cpp"/>
         <ClCompile Include="Gameplay\entity\Entity.cpp"/>
         <ClCompile Include="Gameplay\entity\Player.cpp"/>
         <ClCompile Include="Gameplay\Game.cpp" />
@@ -245,11 +246,13 @@
         <ClCompile Include="GameCommon.cpp" />
         <ClCompile Include="Gameplay\gui\GUIProfiler.cpp"/>
         <ClCompile Include="Main_Windows.cpp" />
+        <Content Include="..\..\Run\.enigma\settings.yml" />
     </ItemGroup>
     <ItemGroup>
         <ClInclude Include="EngineBuildPreferences.hpp" />
         <ClInclude Include="Framework\App.hpp" />
         <ClInclude Include="Framework\GUISubsystem.hpp"/>
+        <ClInclude Include="Framework\WindowConfigParser.hpp"/>
         <ClInclude Include="GameCommon.hpp" />
         <ClInclude Include="Gameplay\entity\Entity.hpp"/>
         <ClInclude Include="Gameplay\entity\Player.hpp"/>
