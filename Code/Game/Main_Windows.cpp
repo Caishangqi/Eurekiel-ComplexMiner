@@ -42,7 +42,6 @@ void RunMessagePump()
 HANDLE g_consoleHandle = nullptr;
 void   CreateConsole()
 {
-    
     AllocConsole();
     FILE* stream;
     freopen_s(&stream, "CONOUT$", "w", stdout);
