@@ -26,6 +26,7 @@
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Model/ModelSubsystem.hpp"
+#include "Engine/Window/Window.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
 #include "gui/GUIProfiler.hpp"
 
@@ -36,8 +37,9 @@ Game::Game()
     g_theRenderer->SetRasterizerMode(RasterizerMode::SOLID_CULL_BACK);
 
     /// Spaces
-    m_screenSpace.m_mins = Vec2::ZERO;
-    m_screenSpace.m_maxs = Vec2(g_gameConfigBlackboard.GetValue("screenSizeX", 1600.f), g_gameConfigBlackboard.GetValue("screenSizeY", 800.f));
+    IntVec2 clientDimension = g_theWindow->GetClientDimensions();
+    m_screenSpace.m_mins    = Vec2::ZERO;
+    m_screenSpace.m_maxs    = Vec2(clientDimension);
 
     m_worldSpace.m_mins = Vec2::ZERO;
     m_worldSpace.m_maxs = Vec2(g_gameConfigBlackboard.GetValue("worldSizeX", 200.f), g_gameConfigBlackboard.GetValue("worldSizeY", 100.f));
@@ -85,6 +87,8 @@ Game::~Game()
     POINTER_SAFE_DELETE(m_screenCamera)
     POINTER_SAFE_DELETE(m_worldCamera)
     POINTER_SAFE_DELETE(m_worldCamera)
+
+    g_theEventSystem->FireEvent("Event.Game.GameInstanceRemove");
 }
 
 
@@ -110,7 +114,7 @@ void Game::Render() const
     {
         g_theRenderer->ClearScreen(g_theApp->m_backgroundColor);
         g_theRenderer->BindTexture(nullptr);
-        DebugDrawRing(Vec2(800, 400), m_currentIconCircleThickness, m_currentIconCircleThickness / 10, Rgba8::WHITE);
+        DebugDrawRing(m_screenSpace.m_maxs / 2, m_currentIconCircleThickness, m_currentIconCircleThickness / 10, Rgba8::WHITE);
     }
 #endif
     // UI render
