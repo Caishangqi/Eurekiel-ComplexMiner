@@ -26,6 +26,7 @@
 #include "Engine/Core/Logger/LoggerAPI.hpp"
 
 // Console system integration
+#include "GUISubsystem.hpp"
 #include "Engine/Core/Console/ConsoleSubsystem.hpp"
 #include "Engine/Registry/Core/RegisterSubsystem.hpp"
 // Windows API for testing
@@ -41,7 +42,7 @@ InputSystem*                         g_theInput    = nullptr;
 AudioSubsystem*                      g_theAudio    = nullptr;
 Game*                                g_theGame     = nullptr;
 enigma::resource::ResourceSubsystem* g_theResource = nullptr;
-// simpleminer::framework::world::ChunkSubsystem* g_theChunk    = nullptr;  // TODO: Replace with new voxel system
+GUISubsystem*                        g_theGUI      = nullptr;
 
 App::App()
 {
@@ -131,27 +132,27 @@ void App::Startup(char*)
     auto audioSubsystem                   = std::make_unique<AudioSubsystem>(audioConfig);
     GEngine->RegisterSubsystem(std::move(audioSubsystem));
 
-    // Create ChunkSubsystem with configuration
-    // TODO: Replace with new voxel system
-    // using namespace simpleminer::framework::world;
-    // ChunkConfig chunkConfig;
-    // auto        chunkSubsystem = std::make_unique<ChunkSubsystem>(chunkConfig);
-    // GEngine->RegisterSubsystem(std::move(chunkSubsystem));
+    // Create GUISubsystem with configuration
+    GUIConfig guiConfig;
+    guiConfig.screenSpace = g_theApp->m_consoleSpace;
+    auto guiSubsystem     = std::make_unique<GUISubsystem>(guiConfig);
+    GEngine->RegisterSubsystem(std::move(guiSubsystem));
 
     // Set up global pointers for legacy compatibility
     g_theResource = GEngine->GetSubsystem<ResourceSubsystem>();
     g_theAudio    = GEngine->GetSubsystem<AudioSubsystem>();
-    // g_theChunk    = GEngine->GetSubsystem<ChunkSubsystem>();  // TODO: Replace with new voxel system
+    g_theGUI      = GEngine->GetSubsystem<GUISubsystem>();
 
     g_theEventSystem->Startup();
 
     // Start Engine subsystems first (includes ConsoleSubsystem)
-    GEngine->Startup();
+
 
     g_theDevConsole->Startup();
     g_theInput->Startup();
     g_theWindow->Startup();
     g_theRenderer->Startup();
+    GEngine->Startup();
     DebugRenderSystemStartup(debugRenderConfig);
 
     g_theGame = new Game();
@@ -245,6 +246,8 @@ void App::HandleKeyBoardEvent()
     {
         m_isDebug = !m_isDebug;
     }
+
+    // Reload the Game, Delete and Create
     if (g_theInput->WasKeyJustPressed(0x77))
     {
         m_isPendingRestart = true;
@@ -373,6 +376,7 @@ void App::Render() const
 {
     g_theRenderer->ClearScreen(Rgba8(m_backgroundColor));
     g_theGame->Render();
+    g_theGUI->Render();
     g_theDevConsole->Render(m_consoleSpace);
 }
 
@@ -385,6 +389,7 @@ void App::EndFrame()
     g_theAudio->EndFrame();
     g_theEventSystem->EndFrame();
     g_theDevConsole->EndFrame();
+    g_theGUI->EndFrame();
 
     if (m_isPendingRestart)
     {
