@@ -5,10 +5,6 @@
 /// Whether or not enable cosmic circle (developer)
 #define COSMIC
 
-namespace simpleminer::framework::world
-{
-    class ChunkSubsystem;
-}
 
 namespace enigma::resource
 {
@@ -25,16 +21,17 @@ class IRenderer;
 class InputSystem;
 class AudioSubsystem;
 class Game;
+class GUISubsystem;
 
 
-extern RandomNumberGenerator*                         g_rng;
-extern App*                                           g_theApp;
-extern IRenderer*                                     g_theRenderer;
-extern InputSystem*                                   g_theInput;
-extern AudioSubsystem*                                g_theAudio;
-extern Game*                                          g_theGame;
-extern enigma::resource::ResourceSubsystem*           g_theResource;
-extern simpleminer::framework::world::ChunkSubsystem* g_theChunk;
+extern RandomNumberGenerator*               g_rng;
+extern App*                                 g_theApp;
+extern IRenderer*                           g_theRenderer;
+extern InputSystem*                         g_theInput;
+extern AudioSubsystem*                      g_theAudio;
+extern Game*                                g_theGame;
+extern enigma::resource::ResourceSubsystem* g_theResource;
+extern GUISubsystem*                        g_theGUI;
 
 constexpr float WORLD_SIZE_X   = 200.f;
 constexpr float WORLD_SIZE_Y   = 100.f;
