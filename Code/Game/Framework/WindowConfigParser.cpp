@@ -79,53 +79,38 @@ IntVec2 WindowConfigParser::ParseResolution(const std::string& configPath)
     {
         auto yamlConfig = YamlConfiguration::LoadFromFile(configPath);
         
-        // 调试：打印 YAML 内容以了解结构
-        DebuggerPrintf("Full YAML content: %s\n", yamlConfig.ToString().c_str());
-        
-        // 使用分层访问方式来避免连点语法问题
-        if (yamlConfig.Contains("video"))
+        // 使用修复后的连点语法直接获取分辨率
+        if (yamlConfig.Contains("video.resolution.width") && yamlConfig.Contains("video.resolution.height"))
         {
-            auto videoSection = yamlConfig.GetConfigurationSection("video");
-            DebuggerPrintf("Video section found. Keys: ");
-            auto videoKeys = videoSection.GetKeys();
-            for (const auto& key : videoKeys) {
-                DebuggerPrintf("%s ", key.c_str());
-            }
-            DebuggerPrintf("\n");
+            int width = yamlConfig.GetInt("video.resolution.width", 1600);
+            int height = yamlConfig.GetInt("video.resolution.height", 900);
             
-            if (videoSection.Contains("resolution"))
+            if (width >= 640 && width <= 7680 && height >= 480 && height <= 4320)
             {
-                auto resolutionSection = videoSection.GetConfigurationSection("resolution");
-                DebuggerPrintf("Resolution section found. Keys: ");
-                auto resKeys = resolutionSection.GetKeys();
-                for (const auto& key : resKeys) {
-                    DebuggerPrintf("%s ", key.c_str());
-                }
-                DebuggerPrintf("\n");
+                resolution = IntVec2(width, height);
+                DebuggerPrintf("Loaded resolution from YAML config: %dx%d\n", width, height);
+                return resolution;
+            }
+        }
+        
+        // 回退到直接 yaml-cpp（备用方案）
+        YAML::Node yamlNode = YAML::LoadFile(configPath);
+        
+        if (yamlNode["video"] && yamlNode["video"]["resolution"])
+        {
+            const YAML::Node& resolutionNode = yamlNode["video"]["resolution"];
+            
+            if (resolutionNode["width"] && resolutionNode["height"])
+            {
+                int width = resolutionNode["width"].as<int>(1600);
+                int height = resolutionNode["height"].as<int>(900);
                 
-                int width = resolutionSection.GetInt("width", 1600);
-                int height = resolutionSection.GetInt("height", 900);
-                
-                DebuggerPrintf("Found resolution in sections: %dx%d\n", width, height);
-                
-                // 验证分辨率范围
                 if (width >= 640 && width <= 7680 && height >= 480 && height <= 4320)
                 {
                     resolution = IntVec2(width, height);
-                }
-                else
-                {
-                    DebuggerPrintf("Warning: Invalid resolution %dx%d, using default\n", width, height);
+                    DebuggerPrintf("Loaded resolution using fallback yaml-cpp: %dx%d\n", width, height);
                 }
             }
-            else
-            {
-                DebuggerPrintf("Warning: resolution section not found in video\n");
-            }
-        }
-        else
-        {
-            DebuggerPrintf("Warning: video section not found\n");
         }
     }
     catch (const std::exception& e)
@@ -142,19 +127,35 @@ float WindowConfigParser::ParseAspectRatio(const std::string& configPath)
     
     try
     {
-        auto yamlConfig = YamlConfiguration::LoadFromFile(configPath);
+        // 直接使用 yaml-cpp，避免 YamlConfiguration 的问题
+        YAML::Node yamlNode = YAML::LoadFile(configPath);
         
-        // 使用正确的 2 参数格式
-        aspectRatio = yamlConfig.GetFloat("video.aspectRatio", 16.0f / 9.0f);
+        if (yamlNode["video"] && yamlNode["video"]["aspectRatio"])
+        {
+            aspectRatio = yamlNode["video"]["aspectRatio"].as<float>(16.0f / 9.0f);
+            DebuggerPrintf("直接yaml-cpp加载宽高比: %f\n", aspectRatio);
+        }
+        else
+        {
+            // 如果没有显式的宽高比，从分辨率计算
+            IntVec2 resolution = ParseResolution(configPath);
+            if (resolution.y > 0)
+            {
+                aspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
+                DebuggerPrintf("从分辨率计算宽高比: %f\n", aspectRatio);
+            }
+        }
     }
-    catch (const std::exception& e)
+    catch (const YAML::Exception& e)
     {
-        DebuggerPrintf("Error parsing aspect ratio: %s\n", e.what());
-        // 如果没有显式的宽高比，从分辨率计算
+        DebuggerPrintf("Error parsing aspect ratio from %s: %s\n", configPath.c_str(), e.what());
+        
+        // 如果解析失败，尝试从分辨率计算
         IntVec2 resolution = ParseResolution(configPath);
         if (resolution.y > 0)
         {
             aspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
+            DebuggerPrintf("Fallback: 从分辨率计算宽高比: %f\n", aspectRatio);
         }
     }
     
