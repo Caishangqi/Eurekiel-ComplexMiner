@@ -9,7 +9,6 @@ namespace enigma::voxel::world
 
 class Player;
 class Clock;
-class Prop;
 
 class Game
 {
@@ -27,21 +26,12 @@ public:
     // Camera
     void UpdateCameras(float deltaTime);
 
-    // Grid
-    void RenderGrids() const;
-    void RenderProps() const;
-
     // World
     void UpdateWorld();
     void RenderWorld() const;
 
     // Block Registration
-    void InitializeBlocks();
-
-private:
-    void RenderEntities() const;
-    void HandleEntityCollisions();
-    void GarbageCollection();
+    void RegisterBlocks();
 
 public:
     std::unique_ptr<enigma::voxel::world::World> m_world;
@@ -65,28 +55,6 @@ public:
 
     /// Player
     Player* m_player = nullptr;
-    /// 
-
-    /// Cube
-    Prop* m_cube   = nullptr;
-    Prop* m_cube_1 = nullptr;
-    ///
-
-    /// Test Obj
-    Prop* m_testProp = nullptr;
-    /// 
-
-    /// Balls
-    Prop* m_ball = nullptr;
-    /// 
-
-    /// Grid
-    Prop*              m_grid_x = nullptr;
-    Prop*              m_grid_y = nullptr;
-    std::vector<Prop*> m_grid_x_unit_5;
-    std::vector<Prop*> m_grid_x_unit_1;
-    std::vector<Prop*> m_grid_y_unit_5;
-    std::vector<Prop*> m_grid_y_unit_1;
     /// 
 
     /// Display Only
