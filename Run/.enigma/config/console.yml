@@ -4,7 +4,7 @@ console:
   # Output mode for development vs runtime
   # "auto" = Debug+Debugger->IDE, Release->External (RECOMMENDED)
   # "ide_only" = Only IDE Console, "external_only" = Only External, "both" = Both
-  output_mode: "both"
+  output_mode: "external_only"
   
   # Key mappings:
   # ~ = Toggle DevConsole (rendered in-game)
