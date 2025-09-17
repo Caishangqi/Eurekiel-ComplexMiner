@@ -107,6 +107,7 @@ std::shared_ptr<GUI> GUISubsystem::AddToViewPort(std::shared_ptr<GUI> gui)
 
 std::shared_ptr<GUI> GUISubsystem::RemoveFromViewPort(std::shared_ptr<GUI> gui)
 {
+    if (!gui) return nullptr;
     for (std::shared_ptr<GUI>& ptr : m_guis)
     {
         if (ptr == gui)
