@@ -36,6 +36,14 @@ void Crosser::Renderer()
     g_theRenderer->DrawVertexArray(m_vertexes);
 }
 
+bool GUICrosser::Event_GameInstanceRemove(EventArgs& args)
+{
+    UNUSED(args)
+    auto gui = g_theGUI->GetGUI(std::type_index(typeid(GUICrosser)));
+    g_theGUI->RemoveFromViewPort(gui);
+    return false;
+}
+
 GUICrosser::GUICrosser(Player* player) : GUI(), m_player(player)
 {
     m_crosser             = std::make_unique<Crosser>();
@@ -66,6 +74,7 @@ void GUICrosser::Update(float deltaTime)
 
 void GUICrosser::OnCreate()
 {
+    g_theEventSystem->SubscribeEventCallbackFunction("Event.Game.GameInstanceRemove", Event_GameInstanceRemove);
 }
 
 void GUICrosser::OnDestroy()

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Engine/Core/EventSystem.hpp"
 #include "Engine/Core/Rgba8.hpp"
 #include "Engine/Math/EulerAngles.hpp"
 #include "Engine/Math/Vec3.hpp"
@@ -26,6 +27,9 @@ struct Crosser
 class GUICrosser : public GUI
 {
     DECLARE_GUI(GUICrosser, "GUICrosser", 100)
+
+public:
+    static bool Event_GameInstanceRemove(EventArgs& args);
 
 public:
     explicit GUICrosser(Player* player);
