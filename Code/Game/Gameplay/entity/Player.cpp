@@ -6,6 +6,8 @@
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Window/Window.hpp"
+#include "Game/Framework/App.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
 #include "Game/Gameplay/Game.hpp"
 #include "Game/Gameplay/gui/GUICrosser.hpp"
@@ -79,18 +81,6 @@ void Player::Update(float deltaSeconds)
     m_orientation.m_rollDegrees += leftTrigger * 0.125f * deltaSeconds * speed;
     m_orientation.m_rollDegrees -= rightTrigger * 0.125f * deltaSeconds * speed;
 
-
-    if (g_theInput->IsKeyDown('Q'))
-    {
-        m_orientation.m_rollDegrees += 0.125f;
-    }
-
-    if (g_theInput->IsKeyDown('E'))
-    {
-        m_orientation.m_rollDegrees -= 0.125f;
-    }
-
-
     //m_orientation.m_yawDegrees   = GetClamped(m_orientation.m_yawDegrees, -85.f, 85.f);
     m_orientation.m_pitchDegrees = GetClamped(m_orientation.m_pitchDegrees, -85.f, 85.f);
     m_orientation.m_rollDegrees  = GetClamped(m_orientation.m_rollDegrees, -45.f, 45.f);
@@ -124,17 +114,16 @@ void Player::Update(float deltaSeconds)
         m_position -= left * speed * deltaSeconds;
     }
 
-    if (g_theInput->IsKeyDown('Z') || controller.IsButtonDown(XBOX_BUTTON_RS))
+    if (g_theInput->IsKeyDown('Q') || controller.IsButtonDown(XBOX_BUTTON_RS))
     {
         m_position.z -= deltaSeconds * speed;
     }
 
-    if (g_theInput->IsKeyDown('C') || controller.IsButtonDown(XBOX_BUTTON_LS))
+    if (g_theInput->IsKeyDown('E') || controller.IsButtonDown(XBOX_BUTTON_LS))
     {
         m_position.z += deltaSeconds * speed;
     }
-
-    m_camera->SetPerspectiveView(2.0f, 60.f, 0.1f, 400.f);
+    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 400.f);
     Mat44 ndcMatrix;
     ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
 
