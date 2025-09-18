@@ -3,6 +3,7 @@
 #include "../Framework/App.hpp"
 #include "../GameCommon.hpp"
 #include "entity/Player.hpp"
+#include "SimpleMinerGenerator.hpp"
 #include "Engine/Core/Clock.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/FileUtils.hpp"
@@ -24,8 +25,10 @@
 #include "Engine/Core/Yaml.hpp"
 #include "Engine/Core/Logger/LoggerAPI.hpp"
 #include "Engine/Voxel/World/World.hpp"
+#include "Engine/Voxel/Chunk/Chunk.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Model/ModelSubsystem.hpp"
+#include "Engine/Voxel/Builtin/BlockAir.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
 #include "gui/GUIProfiler.hpp"
@@ -71,14 +74,21 @@ Game::Game()
     using namespace enigma::voxel::world;
 
     // Create ChunkManager and initialize it with resource caching (NeoForge pattern)
-    auto chunkManager = std::make_unique<ChunkManager>();
+    // 注意：ChunkManager现在需要callback接口，但World构造时会自动设置
+    auto chunkManager = std::make_unique<ChunkManager>(nullptr);
     chunkManager->Initialize(); // Cache atlas textures to avoid per-frame queries
 
     m_world = std::make_unique<World>("world", 0, std::move(chunkManager));
-    m_world->LoadChunk(0, 0);
-    m_world->LoadChunk(2, 0);
-    m_world->LoadChunk(2, 1);
-    m_world->LoadChunk(2, -1);
+
+    // Setup SimpleMinerGenerator for world generation
+    auto generator = std::make_unique<SimpleMinerGenerator>();
+    m_world->SetWorldGenerator(std::move(generator));
+
+    // Load render distance from settings and configure chunk activation
+    int renderDistance = settings.GetInt("video.simulationDistance");
+    m_world->SetChunkActivationRange(12);
+    m_world->GetChunkManager()->SetActivationRange(12);
+    LogInfo("game", "World initialized with render distance: %d chunks", renderDistance);
 }
 
 Game::~Game()
@@ -164,6 +174,25 @@ void Game::Update()
     DebugAddScreenText(debugGameState, m_screenSpace, 14, 0);
     DebugAddMessage(Stringf("Player position: %.2f, %.2f, %.2f", m_player->m_position.x, m_player->m_position.y, m_player->m_position.z), 0);
 
+    // Chunk management debug information (Assignment 02 requirement)
+    if (m_world && m_world->GetChunkManager())
+    {
+        auto* chunkManager = m_world->GetChunkManager().get();
+        UNUSED(chunkManager)
+        // Calculate player's current chunk coordinates using proper constants
+        int32_t playerChunkX = static_cast<int32_t>(std::floor(m_player->m_position.x / enigma::voxel::chunk::Chunk::CHUNK_SIZE_X));
+        int32_t playerChunkY = static_cast<int32_t>(std::floor(m_player->m_position.y / enigma::voxel::chunk::Chunk::CHUNK_SIZE_Y));
+
+        UNUSED(playerChunkX)
+        UNUSED(playerChunkY)
+
+        // Display chunk management stats
+        //DebugAddMessage(Stringf("Chunk: (%d, %d) | Loaded: %zu chunks",playerChunkX, playerChunkY, chunkManager->GetLoadedChunkCount()), 1);
+
+        // Show activation/deactivation ranges
+        //DebugAddMessage(Stringf("Activation Range: %d chunks",settings.GetInt("video.simulationDistance")), 2);
+    }
+
     /// Display Only
 #ifdef COSMIC
     m_counter++;
@@ -178,7 +207,16 @@ void Game::Update()
 void Game::UpdateWorld()
 {
     if (m_world)
+    {
+        // Sync player position to world and chunk manager for intelligent chunk loading
+        if (m_player)
+        {
+            m_world->SetPlayerPosition(m_player->m_position);
+            m_world->GetChunkManager()->SetPlayerPosition(m_player->m_position);
+        }
+
         m_world->Update(m_clock->GetDeltaSeconds());
+    }
 }
 
 void Game::RenderWorld() const
@@ -284,6 +322,5 @@ void Game::RegisterBlocks()
 
     // Load all blocks from the simpleminer namespace
     BlockRegistry::LoadNamespaceBlocks(dataPath.string(), namespaceName);
-
     LogInfo("game", "Block registration completed!");
 }
