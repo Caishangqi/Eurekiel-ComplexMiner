@@ -78,6 +78,21 @@ private:
     mutable std::unordered_map<std::string, int>                                     m_blockIdCache;
     mutable std::unordered_map<int, std::shared_ptr<enigma::registry::block::Block>> m_blockByIdCache;
 
+    // Pre-cached Block IDs for fast generation (populated during initialization)
+    mutable int m_airId        = -1;
+    mutable int m_grassId      = -1;
+    mutable int m_dirtId       = -1;
+    mutable int m_stoneId      = -1;
+    mutable int m_sandId       = -1;
+    mutable int m_waterId      = -1;
+    mutable int m_iceId        = -1;
+    mutable int m_lavaId       = -1;
+    mutable int m_obsidianId   = -1;
+    mutable int m_coalOreId    = -1;
+    mutable int m_ironOreId    = -1;
+    mutable int m_goldOreId    = -1;
+    mutable int m_diamondOreId = -1;
+
 public:
     SimpleMinerGenerator()
         : Generator("simpleminer_generator", "simpleminer")
@@ -131,7 +146,13 @@ private:
     float ComputePerlin2D(float x, float           y, float          scale, unsigned int octaves,
                           float persistence, float octaveScale, bool wrap, unsigned int  seed) const;
 
-    // Block type determination
+    // Block type determination - optimized to return block ID directly
+    int DetermineBlockTypeId(const IntVec3& globalPos, int  terrainHeight, int dirtDepth,
+                             float          humidity, float temperature, float iceDepth) const;
+
+    int DetermineOreTypeId(const IntVec3& globalPos) const;
+
+    // Legacy string-based methods (kept for compatibility)
     std::string DetermineBlockType(const IntVec3& globalPos, int  terrainHeight, int dirtDepth,
                                    float          humidity, float temperature, float iceDepth) const;
 

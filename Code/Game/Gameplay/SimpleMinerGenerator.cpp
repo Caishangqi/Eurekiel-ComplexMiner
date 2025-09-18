@@ -160,33 +160,33 @@ void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
                                                                                      ICE_DEPTH_MIN,
                                                                                      ICE_DEPTH_MAX));
 
-                // Determine block type based on position and biome data
-                std::string blockType = DetermineBlockType(globalCoords, terrainHeight, dirtDepth,
-                                                           humidity, temperature, iceDepth);
+                // Determine block type using optimized ID lookup
+                int blockId = DetermineBlockTypeId(globalCoords, terrainHeight, dirtDepth,
+                                                   humidity, temperature, iceDepth);
 
-                // Set the block in the chunk (following Minecraft NeoForge SetBlock API pattern)
-                if (!blockType.empty())
+                // Set the block in the chunk using the cached block ID
+                if (blockId >= 0)
                 {
-                    auto block = GetCachedBlock(blockType);
+                    auto block = GetCachedBlockById(blockId);
                     if (block)
                     {
                         // Get default BlockState from Block (similar to Block.defaultBlockState() in Minecraft)
                         auto* blockState = block->GetDefaultState();
                         if (blockState)
                         {
-                            chunk->SetBlock(x, y, z, *blockState);
+                            chunk->SetBlock(x, y, z, blockState);
                         }
                     }
                     else
                     {
-                        // Fallback to air if block type not found
-                        auto airBlock = GetCachedBlock("air");
+                        // Fallback to air if block not found
+                        auto airBlock = GetCachedBlockById(m_airId);
                         if (airBlock)
                         {
                             auto* airBlockState = airBlock->GetDefaultState();
                             if (airBlockState)
                             {
-                                chunk->SetBlock(x, y, z, *airBlockState);
+                                chunk->SetBlock(x, y, z, airBlockState);
                             }
                         }
                     }
@@ -198,7 +198,6 @@ void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
     // Mark chunk as generated and dirty for mesh building
     chunk->SetGenerated(true);
     chunk->MarkDirty();
-
     LogDebug("SimpleMinerGenerator", Stringf("Generated chunk (%d, %d) with SimpleMinerGenerator", chunkX, chunkZ));
 }
 
@@ -261,7 +260,22 @@ void SimpleMinerGenerator::InitializeBlockCache() const
         }
     }
 
-    LogInfo("SimpleMinerGenerator", Stringf("Initialized block cache with %d blocks",
+    // Pre-cache commonly used block IDs for fast access during generation
+    m_airId        = BlockRegistry::GetBlockId("simpleminer", "air");
+    m_grassId      = BlockRegistry::GetBlockId("simpleminer", "grass");
+    m_dirtId       = BlockRegistry::GetBlockId("simpleminer", "dirt");
+    m_stoneId      = BlockRegistry::GetBlockId("simpleminer", "stone");
+    m_sandId       = BlockRegistry::GetBlockId("simpleminer", "sand");
+    m_waterId      = BlockRegistry::GetBlockId("simpleminer", "water");
+    m_iceId        = BlockRegistry::GetBlockId("simpleminer", "ice");
+    m_lavaId       = BlockRegistry::GetBlockId("simpleminer", "lava");
+    m_obsidianId   = BlockRegistry::GetBlockId("simpleminer", "obsidian");
+    m_coalOreId    = BlockRegistry::GetBlockId("simpleminer", "coal_ore");
+    m_ironOreId    = BlockRegistry::GetBlockId("simpleminer", "iron_ore");
+    m_goldOreId    = BlockRegistry::GetBlockId("simpleminer", "gold_ore");
+    m_diamondOreId = BlockRegistry::GetBlockId("simpleminer", "diamond_ore");
+
+    LogInfo("SimpleMinerGenerator", Stringf("Initialized block cache with %d blocks, pre-cached common block IDs",
                                             static_cast<int>(m_blockIdCache.size())));
 }
 
@@ -397,4 +411,105 @@ float SimpleMinerGenerator::SmoothStep3(float t) const
 {
     t = std::clamp(t, 0.0f, 1.0f);
     return t * t * (3.0f - 2.0f * t);
+}
+
+// Optimized block type determination using pre-cached Block IDs
+int SimpleMinerGenerator::DetermineBlockTypeId(const IntVec3& globalPos, int   terrainHeight,
+                                               int            dirtDepth, float humidity, float temperature,
+                                               float          iceDepth) const
+{
+    // Above terrain - air, water, or ice
+    if (globalPos.z > terrainHeight)
+    {
+        if (globalPos.z < SEA_LEVEL_Z)
+        {
+            // Water and ice between surface and sea level
+            if (temperature < 0.38f && globalPos.z > iceDepth)
+            {
+                return m_iceId;
+            }
+            return m_waterId;
+        }
+        return m_airId;
+    }
+
+    // Surface block (grass vs sand by humidity and elevation)
+    if (globalPos.z == terrainHeight)
+    {
+        if (humidity < MIN_SAND_HUMIDITY)
+        {
+            return m_sandId;
+        }
+        if (humidity < MAX_SAND_HUMIDITY && terrainHeight <= DEFAULT_TERRAIN_HEIGHT)
+        {
+            return m_sandId;
+        }
+        return m_grassId;
+    }
+
+    // Subsurface: dirt or sand cap above stone/ores
+    int dirtTopZ = terrainHeight - dirtDepth;
+    int sandTopZ = terrainHeight - static_cast<int>(std::floor(RangeMapClamped(humidity,
+                                                                               MIN_SAND_DEPTH_HUMIDITY,
+                                                                               MAX_SAND_DEPTH_HUMIDITY,
+                                                                               SAND_DEPTH_MIN,
+                                                                               SAND_DEPTH_MAX)));
+
+    if (globalPos.z < terrainHeight && globalPos.z >= dirtTopZ)
+    {
+        if (globalPos.z >= sandTopZ)
+        {
+            return m_sandId;
+        }
+        return m_dirtId;
+    }
+
+    // Deep underground: special layers, lava/obsidian, ores, stone
+    if (globalPos.z < dirtTopZ)
+    {
+        if (globalPos.z == OBSIDIAN_Z)
+        {
+            return m_obsidianId;
+        }
+        if (globalPos.z == LAVA_Z)
+        {
+            return m_lavaId;
+        }
+
+        // Check for ores
+        int oreId = DetermineOreTypeId(globalPos);
+        if (oreId >= 0)
+        {
+            return oreId;
+        }
+
+        return m_stoneId;
+    }
+
+    // Default fallback
+    return m_airId;
+}
+
+int SimpleMinerGenerator::DetermineOreTypeId(const IntVec3& globalPos) const
+{
+    float oreNoise = Get3dNoiseZeroToOne(globalPos.x, globalPos.y, globalPos.z);
+
+    if (oreNoise < DIAMOND_CHANCE)
+    {
+        return m_diamondOreId;
+    }
+    if (oreNoise < GOLD_CHANCE)
+    {
+        return m_goldOreId;
+    }
+    if (oreNoise < IRON_CHANCE)
+    {
+        return m_ironOreId;
+    }
+    if (oreNoise < COAL_CHANCE)
+    {
+        return m_coalOreId;
+    }
+
+    return -1; // No ore, will become stone
 }
