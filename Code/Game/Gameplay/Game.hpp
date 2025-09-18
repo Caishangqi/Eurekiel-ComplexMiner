@@ -33,9 +33,6 @@ public:
     // Block Registration
     void RegisterBlocks();
 
-    // Generator Registration
-    void RegisterGenerators();
-
 public:
     std::unique_ptr<enigma::voxel::world::World> m_world;
     bool                                         m_enableChunkDebug = true;

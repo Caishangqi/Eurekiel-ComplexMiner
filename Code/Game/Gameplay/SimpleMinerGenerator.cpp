@@ -145,7 +145,7 @@ void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
                 BlockPos globalBlockPos = chunk->LocalToWorld(x, y, z);
                 IntVec3  globalCoords(globalBlockPos.x, globalBlockPos.y, globalBlockPos.z);
                 size_t   blockIndex = Chunk::CoordsToIndex(x, y, z);
-                UNUSED(blockIndex); // 用于未来的优化或调试目的
+                UNUSED(blockIndex) // Use for debugging
                 int idxXY = y * Chunk::CHUNK_SIZE_X + x;
 
                 int   terrainHeight = heightMapXY[idxXY];
@@ -167,7 +167,7 @@ void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
                 // Set the block in the chunk (following Minecraft NeoForge SetBlock API pattern)
                 if (!blockType.empty())
                 {
-                    auto block = BlockRegistry::GetBlock(blockType);
+                    auto block = GetCachedBlock(blockType);
                     if (block)
                     {
                         // Get default BlockState from Block (similar to Block.defaultBlockState() in Minecraft)
@@ -180,7 +180,7 @@ void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
                     else
                     {
                         // Fallback to air if block type not found
-                        auto airBlock = BlockRegistry::GetBlock("air");
+                        auto airBlock = GetCachedBlock("air");
                         if (airBlock)
                         {
                             auto* airBlockState = airBlock->GetDefaultState();
@@ -195,7 +195,74 @@ void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
         }
     }
 
+    // Mark chunk as generated and dirty for mesh building
+    chunk->SetGenerated(true);
+    chunk->MarkDirty();
+
     LogDebug("SimpleMinerGenerator", Stringf("Generated chunk (%d, %d) with SimpleMinerGenerator", chunkX, chunkZ));
+}
+
+std::shared_ptr<enigma::registry::block::Block> SimpleMinerGenerator::GetCachedBlock(const std::string& blockName) const
+{
+    // Check ID cache first
+    auto idIt = m_blockIdCache.find(blockName);
+    if (idIt != m_blockIdCache.end())
+    {
+        // Use O(1) numeric ID lookup
+        return GetCachedBlockById(idIt->second);
+    }
+
+    // Cache miss - get from registry and cache both ID and block
+    auto block = BlockRegistry::GetBlock("simpleminer", blockName);
+    if (block)
+    {
+        int blockId = BlockRegistry::GetBlockId("simpleminer", blockName);
+        if (blockId >= 0)
+        {
+            m_blockIdCache[blockName] = blockId;
+            m_blockByIdCache[blockId] = block;
+        }
+    }
+    return block;
+}
+
+std::shared_ptr<enigma::registry::block::Block> SimpleMinerGenerator::GetCachedBlockById(int blockId) const
+{
+    // Check block cache first
+    auto blockIt = m_blockByIdCache.find(blockId);
+    if (blockIt != m_blockByIdCache.end())
+    {
+        return blockIt->second;
+    }
+
+    // Cache miss - get from registry using O(1) lookup
+    auto block = BlockRegistry::GetBlockById(blockId);
+    if (block)
+    {
+        m_blockByIdCache[blockId] = block;
+    }
+    return block;
+}
+
+void SimpleMinerGenerator::InitializeBlockCache() const
+{
+    // Pre-cache all simpleminer namespace blocks
+    auto allBlocks = BlockRegistry::GetBlocksByNamespace("simpleminer");
+    for (const auto& block : allBlocks)
+    {
+        if (block)
+        {
+            int blockId = block->GetNumericId();
+            if (blockId >= 0)
+            {
+                m_blockIdCache[block->GetRegistryName()] = blockId;
+                m_blockByIdCache[blockId]                = block;
+            }
+        }
+    }
+
+    LogInfo("SimpleMinerGenerator", Stringf("Initialized block cache with %d blocks",
+                                            static_cast<int>(m_blockIdCache.size())));
 }
 
 std::string SimpleMinerGenerator::DetermineBlockType(const IntVec3& globalPos, int   terrainHeight,
@@ -280,19 +347,19 @@ std::string SimpleMinerGenerator::DetermineOreType(const IntVec3& globalPos) con
 
     if (oreNoise < DIAMOND_CHANCE)
     {
-        return "diamond";
+        return "diamond_ore";
     }
     if (oreNoise < GOLD_CHANCE)
     {
-        return "gold";
+        return "gold_ore";
     }
     if (oreNoise < IRON_CHANCE)
     {
-        return "iron";
+        return "iron_ore";
     }
     if (oreNoise < COAL_CHANCE)
     {
-        return "coal";
+        return "coal_ore";
     }
 
     return ""; // No ore, will become stone

@@ -4,6 +4,8 @@
 #include "Engine/Math/RawNoise.hpp"
 #include "Engine/Math/IntVec2.hpp"
 #include "Engine/Core/Engine.hpp"
+#include <unordered_map>
+#include <memory>
 
 using namespace enigma::voxel::generation;
 using namespace enigma::voxel::chunk;
@@ -72,6 +74,10 @@ private:
     // Current world seed
     uint32_t m_worldSeed = GAME_SEED;
 
+    // Performance optimization: cache block IDs to avoid repeated registry lookups
+    mutable std::unordered_map<std::string, int>                                     m_blockIdCache;
+    mutable std::unordered_map<int, std::shared_ptr<enigma::registry::block::Block>> m_blockByIdCache;
+
 public:
     SimpleMinerGenerator()
         : Generator("simpleminer_generator", "simpleminer")
@@ -94,6 +100,7 @@ public:
     bool Initialize(uint32_t seed) override
     {
         m_worldSeed = seed;
+        InitializeBlockCache();
         return true;
     }
 
@@ -129,4 +136,9 @@ private:
                                    float          humidity, float temperature, float iceDepth) const;
 
     std::string DetermineOreType(const IntVec3& globalPos) const;
+
+    // Performance optimization: cached block lookups using numeric IDs
+    void                                            InitializeBlockCache() const;
+    std::shared_ptr<enigma::registry::block::Block> GetCachedBlock(const std::string& blockName) const;
+    std::shared_ptr<enigma::registry::block::Block> GetCachedBlockById(int blockId) const;
 };

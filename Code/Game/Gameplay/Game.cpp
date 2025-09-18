@@ -3,7 +3,6 @@
 #include "../Framework/App.hpp"
 #include "../GameCommon.hpp"
 #include "entity/Player.hpp"
-#include "SimpleMinerGenerator.hpp"
 #include "Engine/Core/Clock.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/FileUtils.hpp"
@@ -67,7 +66,7 @@ Game::Game()
     /// Block Registration Phase - MUST happen before World creation
     RegisterBlocks();
 
-    /// World Creation
+    /// World Creation  
     using namespace enigma::voxel::chunk;
     using namespace enigma::voxel::world;
 
@@ -76,11 +75,6 @@ Game::Game()
     chunkManager->Initialize(); // Cache atlas textures to avoid per-frame queries
 
     m_world = std::make_unique<World>("world", 0, std::move(chunkManager));
-
-    /// Generator Registration Phase - MUST happen after World creation but before chunk loading
-    RegisterGenerators();
-
-    // Load initial chunks
     m_world->LoadChunk(0, 0);
     m_world->LoadChunk(2, 0);
     m_world->LoadChunk(2, 1);
@@ -292,31 +286,4 @@ void Game::RegisterBlocks()
     BlockRegistry::LoadNamespaceBlocks(dataPath.string(), namespaceName);
 
     LogInfo("game", "Block registration completed!");
-}
-
-void Game::RegisterGenerators()
-{
-    using namespace enigma::voxel::generation;
-
-    LogInfo("game", "Starting generator registration phase...");
-
-    // Create the SimpleMinerGenerator and set it to the world's ChunkManager
-    static SimpleMinerGenerator s_simpleMinerGenerator;
-
-    // Initialize the generator with world seed
-    uint32_t worldSeed = 12345; // TODO: Get from world configuration
-    s_simpleMinerGenerator.Initialize(worldSeed);
-
-    // Set the generator to the ChunkManager
-    if (m_world && m_world->GetChunkManager())
-    {
-        m_world->GetChunkManager()->SetGenerator(&s_simpleMinerGenerator);
-        LogInfo("game", "SimpleMinerGenerator assigned to ChunkManager");
-    }
-    else
-    {
-        LogError("game", "Cannot assign generator - World or ChunkManager not available");
-    }
-
-    LogInfo("game", "Generator registration completed!");
 }
