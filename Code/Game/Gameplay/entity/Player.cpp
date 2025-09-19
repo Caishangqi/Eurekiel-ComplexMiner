@@ -123,7 +123,7 @@ void Player::Update(float deltaSeconds)
     {
         m_position.z += deltaSeconds * speed;
     }
-    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 400.f);
+    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 512.f);
     Mat44 ndcMatrix;
     ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
 
