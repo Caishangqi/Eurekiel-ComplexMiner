@@ -53,12 +53,15 @@ void GUIProfiler::Update(float deltaTime)
     for (auto& pair : loadedChunks)
     {
         auto mesh = pair.second->GetMesh();
-        m_numOpaqueVertices += mesh->GetOpaqueVertexCount();
-        m_numTransparentVertices += mesh->GetTransparentVertexCount();
-        m_numOpaqueIndices += mesh->GetOpaqueIndexCount();
-        m_numTransparentIndices += mesh->GetTransparentIndexCount();
-        m_numOpaqueTriangles += mesh->GetOpaqueTriangleCount();
-        m_numTransparentTriangles += mesh->GetTransparentTriangleCount();
+        if (mesh)
+        {
+            m_numOpaqueVertices += mesh->GetOpaqueVertexCount();
+            m_numTransparentVertices += mesh->GetTransparentVertexCount();
+            m_numOpaqueIndices += mesh->GetOpaqueIndexCount();
+            m_numTransparentIndices += mesh->GetTransparentIndexCount();
+            m_numOpaqueTriangles += mesh->GetOpaqueTriangleCount();
+            m_numTransparentTriangles += mesh->GetTransparentTriangleCount();
+        }
     }
 
     m_vertices.clear();
