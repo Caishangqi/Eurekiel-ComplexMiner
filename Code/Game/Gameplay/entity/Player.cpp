@@ -10,7 +10,9 @@
 #include "Game/Framework/App.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
 #include "Game/Gameplay/Game.hpp"
+#include "Game/Gameplay/gui/GUIBlock3DSelection.hpp"
 #include "Game/Gameplay/gui/GUICrosser.hpp"
+#include "Game/Gameplay/gui/GUIPlayerInventory.hpp"
 
 bool Player::Event_Player_Join_World(EventArgs& args)
 {
@@ -19,6 +21,16 @@ bool Player::Event_Player_Join_World(EventArgs& args)
     if (!gui)
     {
         g_theGUI->AddToViewPort(std::make_shared<GUICrosser>(g_theGame->m_player));
+    }
+    std::shared_ptr<GUI> guiInventory = g_theGUI->GetGUI(std::type_index(typeid(GUIPlayerInventory)));
+    if (!gui)
+    {
+        g_theGUI->AddToViewPort(std::make_shared<GUIPlayerInventory>());
+    }
+    std::shared_ptr<GUI> guiBlockSelection = g_theGUI->GetGUI(std::type_index(typeid(GUIBlock3DSelection)));
+    if (!gui)
+    {
+        g_theGUI->AddToViewPort(std::make_shared<GUIBlock3DSelection>());
     }
     return false;
 }
