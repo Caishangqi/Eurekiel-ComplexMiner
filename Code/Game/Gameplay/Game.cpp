@@ -85,9 +85,8 @@ Game::Game()
     m_world->SetWorldGenerator(std::move(generator));
 
     // Load render distance from settings and configure chunk activation
-    int renderDistance = settings.GetInt("video.simulationDistance");
-    m_world->SetChunkActivationRange(12);
-    m_world->GetChunkManager()->SetActivationRange(12);
+    int renderDistance = settings.GetInt("video.simulationDistance", 64);
+    m_world->SetChunkActivationRange(renderDistance);
     LogInfo("game", "World initialized with render distance: %d chunks", renderDistance);
 }
 
