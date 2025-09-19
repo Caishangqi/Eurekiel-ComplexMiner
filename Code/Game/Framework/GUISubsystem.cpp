@@ -11,6 +11,7 @@ GUISubsystem::GUISubsystem(GUIConfig& config) : m_config(config)
 
 void GUISubsystem::Render()
 {
+    g_theRenderer->SetBlendMode(BlendMode::ALPHA);
     RenderGUI();
     RenderHud();
 }
