@@ -13,7 +13,7 @@ bool GUIProfiler::Event_Player_Quit_World(EventArgs& args)
 
     auto gui = g_theGUI->GetGUI(std::type_index(typeid(GUIProfiler)));
     if (gui) g_theGUI->RemoveFromViewPort(gui);
-    return true;
+    return false;
 }
 
 GUIProfiler::GUIProfiler() : GUI()
