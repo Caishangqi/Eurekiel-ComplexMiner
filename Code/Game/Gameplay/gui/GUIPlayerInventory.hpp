@@ -11,6 +11,8 @@ struct Vertex_PCU;
 
 class GUIPlayerInventory : public GUI
 {
+    friend class Player;
+
     DECLARE_GUI(GUIPlayerInventory, "GUIPlayerInventory", 80)
 
 public:

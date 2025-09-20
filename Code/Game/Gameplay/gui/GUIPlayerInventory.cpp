@@ -1,5 +1,6 @@
 ﻿#include "GUIPlayerInventory.hpp"
 
+#include "Engine/Audio/AudioSubsystem.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
@@ -94,10 +95,12 @@ void GUIPlayerInventory::ProcessInput(float deltaTime)
     short delta = g_theInput->GetMouseWheelDelta();
     if (delta > 0)
     {
+        g_theAudio->PlaySound(enigma::resource::ResourceLocation::Of("engine", "sounds/stereo/click"));
         m_currentIndex = (m_currentIndex + 1) % m_numBlocks;
     }
     else if (delta < 0)
     {
+        g_theAudio->PlaySound(enigma::resource::ResourceLocation::Of("engine", "sounds/stereo/click"));
         m_currentIndex = (m_currentIndex + m_numBlocks - 1) % m_numBlocks;
     }
 }
