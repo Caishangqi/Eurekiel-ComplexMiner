@@ -29,6 +29,7 @@
 #include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Model/ModelSubsystem.hpp"
 #include "Engine/Voxel/Builtin/BlockAir.hpp"
+#include "Engine/Voxel/Builtin/DefaultBlock.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
 #include "gui/GUIProfiler.hpp"
@@ -85,7 +86,7 @@ Game::Game()
     m_world->SetWorldGenerator(std::move(generator));
 
     // Load render distance from settings and configure chunk activation
-    int renderDistance = settings.GetInt("video.simulationDistance", 64);
+    int renderDistance = settings.GetInt("video.simulationDistance", 16);
     m_world->SetChunkActivationRange(renderDistance);
     LogInfo("game", "World initialized with render distance: %d chunks", renderDistance);
 }
@@ -321,5 +322,6 @@ void Game::RegisterBlocks()
 
     // Load all blocks from the simpleminer namespace
     BlockRegistry::LoadNamespaceBlocks(dataPath.string(), namespaceName);
+    AIR = BlockRegistry::GetBlock("simpleminer", "air");
     LogInfo("game", "Block registration completed!");
 }
