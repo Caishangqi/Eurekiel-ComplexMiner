@@ -489,6 +489,9 @@
       <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-59-05.log" />
       <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_18-17-22.log" />
     </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Test\"/>
+    </ItemGroup>
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
     <ImportGroup Label="ExtensionTargets">
     </ImportGroup>
