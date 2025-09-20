@@ -2,6 +2,8 @@
 #include "Entity.hpp"
 #include "Engine/Core/EventSystem.hpp"
 
+class GUIBlock3DSelection;
+class GUIPlayerInventory;
 class Camera;
 
 class Player : public Entity
@@ -18,4 +20,10 @@ public:
 
     void Update(float deltaSeconds) override;
     void Render() const override;
+
+    void ProcessInput(float deltaTime);
+
+private:
+    static std::shared_ptr<GUIPlayerInventory>  m_guiPlayerInventory;
+    static std::shared_ptr<GUIBlock3DSelection> m_guiBlockSelection;
 };

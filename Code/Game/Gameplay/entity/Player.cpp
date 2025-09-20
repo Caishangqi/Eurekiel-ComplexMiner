@@ -4,8 +4,12 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Math/MathUtils.hpp"
+#include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Voxel/Builtin/DefaultBlock.hpp"
+#include <cmath>
+#include "Engine/Voxel/World/World.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Game/Framework/App.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
@@ -13,6 +17,9 @@
 #include "Game/Gameplay/gui/GUIBlock3DSelection.hpp"
 #include "Game/Gameplay/gui/GUICrosser.hpp"
 #include "Game/Gameplay/gui/GUIPlayerInventory.hpp"
+
+std::shared_ptr<GUIPlayerInventory>  Player::m_guiPlayerInventory = nullptr;
+std::shared_ptr<GUIBlock3DSelection> Player::m_guiBlockSelection  = nullptr;
 
 bool Player::Event_Player_Join_World(EventArgs& args)
 {
@@ -25,12 +32,12 @@ bool Player::Event_Player_Join_World(EventArgs& args)
     std::shared_ptr<GUI> guiInventory = g_theGUI->GetGUI(std::type_index(typeid(GUIPlayerInventory)));
     if (!gui)
     {
-        g_theGUI->AddToViewPort(std::make_shared<GUIPlayerInventory>());
+        m_guiPlayerInventory = std::dynamic_pointer_cast<GUIPlayerInventory>(g_theGUI->AddToViewPort(std::make_shared<GUIPlayerInventory>()));
     }
     std::shared_ptr<GUI> guiBlockSelection = g_theGUI->GetGUI(std::type_index(typeid(GUIBlock3DSelection)));
     if (!gui)
     {
-        g_theGUI->AddToViewPort(std::make_shared<GUIBlock3DSelection>());
+        m_guiBlockSelection = std::dynamic_pointer_cast<GUIBlock3DSelection>(g_theGUI->AddToViewPort(std::make_shared<GUIBlock3DSelection>()));
     }
     return false;
 }
@@ -135,7 +142,7 @@ void Player::Update(float deltaSeconds)
     {
         m_position.z += deltaSeconds * speed;
     }
-    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 512.f);
+    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 1024.f);
     Mat44 ndcMatrix;
     ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
 
@@ -145,6 +152,8 @@ void Player::Update(float deltaSeconds)
 
     m_camera->SetCameraToRenderTransform(ndcMatrix);
 
+    // Input
+    ProcessInput(deltaSeconds);
     Entity::Update(deltaSeconds);
 }
 
@@ -152,4 +161,46 @@ void Player::Render() const
 {
     g_theRenderer->BeginCamera(*m_camera);
     g_theRenderer->EndCamera(*m_camera);
+}
+
+void Player::ProcessInput(float deltaTime)
+{
+    UNUSED(deltaTime)
+    if (g_theInput->WasMouseButtonJustPressed(KEYCODE_LEFT_MOUSE))
+    {
+        // Place Current Block
+        if (m_guiPlayerInventory)
+        {
+            auto block = m_guiPlayerInventory->GetCurrentBlock();
+            if (block != nullptr && block != enigma::voxel::block::AIR)
+            {
+                // Use std::floor to correctly convert floating point coordinates to square coordinates
+                int32_t blockX = static_cast<int32_t>(std::floor(m_position.x));
+                int32_t blockY = static_cast<int32_t>(std::floor(m_position.y));
+                int32_t blockZ = static_cast<int32_t>(std::floor(m_position.z));
+
+                auto topBlockZ     = m_game->m_world->GetTopBlockZ(enigma::voxel::block::BlockPos(blockX, blockY, blockZ));
+                auto blockPlacePos = enigma::voxel::block::BlockPos(blockX, blockY, topBlockZ + 1);
+                m_game->m_world->SetBlockState(blockPlacePos, block->GetDefaultState());
+            }
+        }
+    }
+
+    if (g_theInput->WasMouseButtonJustPressed(KEYCODE_RIGHT_MOUSE))
+    {
+        // Destroy Block (replace with air)
+        if (m_game->m_world)
+        {
+            if (enigma::voxel::block::AIR)
+            {
+                int32_t blockX = static_cast<int32_t>(std::floor(m_position.x));
+                int32_t blockY = static_cast<int32_t>(std::floor(m_position.y));
+                int32_t blockZ = static_cast<int32_t>(std::floor(m_position.z));
+
+                auto topBlockZ       = m_game->m_world->GetTopBlockZ(enigma::voxel::block::BlockPos(blockX, blockY, blockZ));
+                auto blockDestroyPos = enigma::voxel::block::BlockPos(blockX, blockY, topBlockZ);
+                m_game->m_world->SetBlockState(blockDestroyPos, enigma::voxel::block::AIR->GetDefaultState());
+            }
+        }
+    }
 }
