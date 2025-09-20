@@ -7,6 +7,7 @@
 #include "Engine/Core/Clock.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/FileUtils.hpp"
+#include "Engine/Core/Logger/LoggerAPI.hpp"
 
 #include "Engine/Math/Vec2.hpp"
 #include "Engine/Core/Rgba8.hpp"
@@ -21,14 +22,10 @@
 // Resource system integration
 #include "Engine/Resource/ResourceSubsystem.hpp"
 #include "Engine/Resource/ResourceCommon.hpp"
-#include "Engine/Audio/AudioSubsystem.hpp"
 #include "Engine/Core/Yaml.hpp"
-#include "Engine/Core/Logger/LoggerAPI.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Voxel/Chunk/Chunk.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
-#include "Engine/Model/ModelSubsystem.hpp"
-#include "Engine/Voxel/Builtin/BlockAir.hpp"
 #include "Engine/Voxel/Builtin/DefaultBlock.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
@@ -81,6 +78,17 @@ Game::Game()
 
     m_world = std::make_unique<World>("world", 0, std::move(chunkManager));
 
+    // Initialize ESF storage system for world saves
+    std::string savesPath = ".enigma/saves"; // Following Minecraft's .minecraft/saves pattern
+    if (!m_world->InitializeWorldStorage(savesPath))
+    {
+        LogError("game", "Failed to initialize world storage system");
+    }
+    else
+    {
+        LogInfo("game", "World storage system initialized in: %s", savesPath.c_str());
+    }
+
     // Setup SimpleMinerGenerator for world generation
     auto generator = std::make_unique<SimpleMinerGenerator>();
     m_world->SetWorldGenerator(std::move(generator));
@@ -93,6 +101,15 @@ Game::Game()
 
 Game::~Game()
 {
+    // Save and close world before cleanup
+    if (m_world)
+    {
+        LogInfo("game", "Saving world before game shutdown...");
+        m_world->SaveWorld();
+        m_world->CloseWorld();
+        m_world.reset(); // Explicitly release the world
+    }
+
     POINTER_SAFE_DELETE(m_player)
     POINTER_SAFE_DELETE(m_screenCamera)
     POINTER_SAFE_DELETE(m_worldCamera)
