@@ -1,6 +1,7 @@
 ﻿#include "GUIBlock3DSelection.hpp"
 
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/IRenderer.hpp"
 #include "Game/GameCommon.hpp"
@@ -30,7 +31,7 @@ void GUIBlock3DSelection::Draw()
 
 void GUIBlock3DSelection::DrawHud()
 {
-    Mat44 matTranslation = Mat44::MakeTranslation3D(m_blockPosition);
+    Mat44 matTranslation = Mat44::MakeTranslation3D(Vec3((float)m_blockPosition.x, (float)m_blockPosition.y, (float)m_blockPosition.z));
     matTranslation.Append(Mat44::MakeNonUniformScale3D(Vec3::ONE));
 
     g_theRenderer->SetDepthMode(DepthMode::DISABLED);
@@ -45,11 +46,6 @@ void GUIBlock3DSelection::Update(float deltaTime)
     UNUSED(deltaTime)
     m_hudCamera->SetPosition(m_player->m_position);
     m_hudCamera->SetOrientation(m_player->m_orientation);
-
-    Vec3 iFwd, jLeft, kUp;
-    m_player->m_orientation.GetAsVectors_IFwd_JLeft_KUp(iFwd, jLeft, kUp);
-    float offsetDistance = 8.f;
-    m_blockPosition      = m_player->m_position + iFwd * offsetDistance;
 }
 
 void GUIBlock3DSelection::OnCreate()
