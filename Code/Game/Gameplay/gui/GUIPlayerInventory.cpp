@@ -91,6 +91,8 @@ std::shared_ptr<enigma::registry::block::Block> GUIPlayerInventory::GetNextBlock
 
 void GUIPlayerInventory::ProcessInput(float deltaTime)
 {
+    if (g_theDevConsole->IsOpen())
+        return;
     UNUSED(deltaTime)
     short delta = g_theInput->GetMouseWheelDelta();
     if (delta > 0)
