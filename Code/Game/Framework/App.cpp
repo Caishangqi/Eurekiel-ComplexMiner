@@ -291,6 +291,7 @@ bool App::Event_ConsoleStartup(EventArgs& args)
                              "F3 + G       - Toggle Chunk Boarder\n"
                              "ESC          - Quit\n"
                              "P            - Pause the Game\n"
+                             "C            - Switch Camera mode\n"
                              "O            - Step single frame\n"
                              "T            - Toggle time scale between 0.1 and 1.0\n"
                              "~            - Toggle Develop Console");
