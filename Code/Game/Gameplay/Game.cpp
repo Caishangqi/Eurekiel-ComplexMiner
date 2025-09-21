@@ -57,8 +57,8 @@ Game::Game()
 
     /// Player
     m_player                = new Player(this);
-    m_player->m_position    = Vec3(-50, -50, 150);
-    m_player->m_orientation = EulerAngles(45, 45, 0);
+    m_player->m_position    = Vec3(0, 0, 128);
+    m_player->m_orientation = EulerAngles(-45, 30, 0);
     /// 
 
     /// Game State
@@ -67,36 +67,14 @@ Game::Game()
     /// Block Registration Phase - MUST happen before World creation
     RegisterBlocks();
 
-    /// World Creation  
-    using namespace enigma::voxel::chunk;
+    /// World Creation with RAII constructor
     using namespace enigma::voxel::world;
 
-    // Create ChunkManager and initialize it with resource caching (NeoForge pattern)
-    // 注意：ChunkManager现在需要callback接口，但World构造时会自动设置
-    auto chunkManager = std::make_unique<ChunkManager>(nullptr);
-    chunkManager->Initialize(); // Cache atlas textures to avoid per-frame queries
-
-    m_world = std::make_unique<World>("world", 0, std::move(chunkManager));
-
-    // Initialize ESF storage system for world saves
-    std::string savesPath = ".enigma/saves"; // Following Minecraft's .minecraft/saves pattern
-    if (!m_world->InitializeWorldStorage(savesPath))
-    {
-        LogError("game", "Failed to initialize world storage system");
-    }
-    else
-    {
-        LogInfo("game", "World storage system initialized in: %s", savesPath.c_str());
-    }
-
-    // Setup SimpleMinerGenerator for world generation
-    auto generator = std::make_unique<SimpleMinerGenerator>();
-    m_world->SetWorldGenerator(std::move(generator));
-
-    // Load render distance from settings and configure chunk activation
+    auto generator     = std::make_unique<SimpleMinerGenerator>();
+    m_world            = std::make_unique<World>("world", 0, std::move(generator));
     int renderDistance = settings.GetInt("video.simulationDistance", 16);
     m_world->SetChunkActivationRange(renderDistance);
-    LogInfo("game", "World initialized with render distance: %d chunks", renderDistance);
+    LogInfo("game", "Render distance configured: %d chunks", renderDistance);
 }
 
 Game::~Game()
