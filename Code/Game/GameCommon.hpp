@@ -47,6 +47,16 @@ constexpr int GRID_SIZE      = 50; // Half
 constexpr int GRID_UNIT_SIZE = 5;
 /// 
 
+/// Camera mode
+enum class CameraMode
+{
+    SPECTATOR_FULL = 0,
+    SPECTATOR_XY,
+    THIRD_PERSON,
+    FIRST_PERSON
+};
+
+const char* CameraModeToString(CameraMode mode);
 
 void DebugDrawRing(const Vec2& center, float radius, float thickness, const Rgba8& color);
 
