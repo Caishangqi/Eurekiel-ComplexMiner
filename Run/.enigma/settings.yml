@@ -2,15 +2,15 @@ general:
   appName: "SimpleMiner"
   version: "0.1.0"
 video:
-  windowMode: "borderlessFullscreen"  # windowed, fullscreen, borderlessFullscreen
+  windowMode: "windowed"  # windowed, fullscreen, borderlessFullscreen
   resolution:
     width: 1600
     height: 800
   aspectRatio: 2  # 16:9
   targetFPS: 60
   vsync: true
-  renderDistance: 12  # unit chunk
-  simulationDistance: 12 # unit chunk
+  renderDistance: 24  # unit chunk
+  simulationDistance: 24 # unit chunk
 performance:
   chunkUpdateThreads: 6 # default to max 32
   alwaysDeferChunkUpdate: true
