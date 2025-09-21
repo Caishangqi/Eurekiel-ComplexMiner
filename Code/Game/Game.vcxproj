@@ -215,22 +215,31 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\coal_ore.json"/>
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\cobblestone.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\diamond_ore.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\dirt.json"/>
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\glowstone.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\gold_ore.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\iron_ore.json"/>
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\silt_bricks.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\stone.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\blockstates\water.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\coal_ore.json"/>
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\cobblestone.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\diamond_ore.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\dirt.json"/>
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\glowstone.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\gold_ore.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\iron_ore.json"/>
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\silt_bricks.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\stone.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\models\block\water.json"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\aether_dirt.png" />
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\aether_grass_block_side.png" />
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\aether_grass_block_top.png" />
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\cobblestone.png"/>
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\glowstone.png"/>
+        <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\silt_bricks.png"/>
         <Content Include="..\..\Run\.enigma\data\Shaders\BlinnPhong.hlsl" />
         <Content Include="..\..\Run\.enigma\data\Shaders\Default.hlsl" />
         <Content Include="..\..\Run\.enigma\data\Shaders\Default2D.hlsl" />
@@ -249,6 +258,9 @@
         <ClCompile Include="Gameplay\gui\GUIProfiler.cpp"/>
         <ClCompile Include="Gameplay\SimpleMinerGenerator.cpp"/>
         <ClCompile Include="Main_Windows.cpp" />
+        <Content Include="..\..\Run\.enigma\data\simpleminer\block\cobblestone.yml"/>
+        <Content Include="..\..\Run\.enigma\data\simpleminer\block\glowstone.yml"/>
+        <Content Include="..\..\Run\.enigma\data\simpleminer\block\silt_bricks.yml"/>
         <Content Include="..\..\Run\.enigma\settings.yml" />
     </ItemGroup>
     <ItemGroup>
