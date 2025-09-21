@@ -169,6 +169,11 @@ void Game::Update()
     DebugAddScreenText(debugGameState, m_screenSpace, 14, 0);
     DebugAddMessage(Stringf("Player position: %.2f, %.2f, %.2f", m_player->m_position.x, m_player->m_position.y, m_player->m_position.z), 0);
 
+    // Display current camera mode in top right corner
+    std::string cameraModeText    = Stringf("Camera: %s", CameraModeToString(m_player->GetCameraMode()));
+    AABB2       cameraModeTextBox = m_screenSpace.GetPadded(Vec4(0, 0, 0, -16));
+    DebugAddScreenText(cameraModeText, cameraModeTextBox, 14.0f, 0.0f, Rgba8::WHITE, Rgba8::WHITE, Vec2(1, 1.f));
+
     // Chunk management debug information (Assignment 02 requirement)
     if (m_world && m_world->GetChunkManager())
     {
