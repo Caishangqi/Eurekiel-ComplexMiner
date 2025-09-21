@@ -490,16 +490,6 @@
         <Content Include="..\..\Run\.enigma\data\simpleminer\block\water.yml"/>
       <Content Include="..\..\Run\.enigma\engine_resources.txt" />
       <Content Include="..\..\Run\.enigma\logs\latest.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-44-34.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-44-59.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-49-31.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-50-40.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-52-14.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-52-32.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-53-16.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_09-59-05.log" />
-      <Content Include="..\..\Run\.enigma\logs\latest_2025-08-26_18-17-22.log" />
     </ItemGroup>
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
     <ImportGroup Label="ExtensionTargets">
