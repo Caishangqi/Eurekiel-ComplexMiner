@@ -277,19 +277,23 @@ bool App::Event_ConsoleStartup(EventArgs& args)
 
     // Output to DevConsole (will be mirrored to IDE Console via DevConsoleAppender)
     g_theDevConsole->AddLine(Rgba8(95, 95, 95),
-                             "Mouse   - Aim\n"
-                             "W/A     - Move\n"
-                             "S/D     - Strafe\n"
-                             "Q/E     - Down | Up\n"
-                             "Shift   - Sprint\n"
-                             "F8      - Reload the Game\n"
-                             "F3      - Toggle Chunk Pool Statistic\n"
-                             "F3 + G  - Toggle Chunk Boarder\n"
-                             "ESC     - Quit\n"
-                             "P       - Pause the Game\n"
-                             "O       - Step single frame\n"
-                             "T       - Toggle time scale between 0.1 and 1.0\n"
-                             "~       - Toggle Develop Console");
+                             "Mouse        - Aim\n"
+                             "W/A          - Move\n"
+                             "S/D          - Strafe\n"
+                             "Q/E          - Down | Up\n"
+                             "Shift        - Sprint\n"
+                             "LMB          - Place select block\n"
+                             "RMB          - Break block under player\n"
+                             "Wheel Up     - Select Previous block\n"
+                             "Wheel Down   - Select Next block\n"
+                             "F8           - Reload the Game\n"
+                             "F3           - Toggle Chunk Pool Statistic\n"
+                             "F3 + G       - Toggle Chunk Boarder\n"
+                             "ESC          - Quit\n"
+                             "P            - Pause the Game\n"
+                             "O            - Step single frame\n"
+                             "T            - Toggle time scale between 0.1 and 1.0\n"
+                             "~            - Toggle Develop Console");
     return true;
 }
 
