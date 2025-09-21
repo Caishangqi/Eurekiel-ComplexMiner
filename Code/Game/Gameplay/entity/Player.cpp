@@ -9,6 +9,8 @@
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Voxel/Builtin/DefaultBlock.hpp"
 #include <cmath>
+
+#include "Engine/Renderer/DebugRenderSystem.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Game/Framework/App.hpp"
@@ -69,88 +71,10 @@ Player::~Player()
 
 void Player::Update(float deltaSeconds)
 {
-    Vec2 cursorDelta = g_theInput->GetCursorClientDelta();
-    //printf(Stringf("%f %f \n", cursorDelta.x, cursorDelta.y).c_str());
-
-
-    m_orientation.m_yawDegrees += -cursorDelta.x * 0.125f;
-    m_orientation.m_pitchDegrees += -cursorDelta.y * 0.125f;
-
-    const XboxController& controller = g_theInput->GetController(0);
-    float                 speed      = 4.0f;
-
-    Vec2  leftStickPos  = controller.GetLeftStick().GetPosition();
-    Vec2  rightStickPos = controller.GetRightStick().GetPosition();
-    float leftStickMag  = controller.GetLeftStick().GetMagnitude();
-    float rightStickMag = controller.GetRightStick().GetMagnitude();
-    float leftTrigger   = controller.GetLeftTrigger();
-    float rightTrigger  = controller.GetRightTrigger();
-
-    if (rightStickMag > 0.f)
-    {
-        m_orientation.m_yawDegrees += -(rightStickPos * speed * rightStickMag * 0.125f).x;
-        m_orientation.m_pitchDegrees += -(rightStickPos * speed * rightStickMag * 0.125f).y;
-    }
-
-    if (g_theInput->IsKeyDown(KEYCODE_LEFT_SHIFT) || controller.IsButtonDown(XBOX_BUTTON_A))
-    {
-        speed *= 20.f;
-    }
-
-    m_orientation.m_rollDegrees += leftTrigger * 0.125f * deltaSeconds * speed;
-    m_orientation.m_rollDegrees -= rightTrigger * 0.125f * deltaSeconds * speed;
-
-    //m_orientation.m_yawDegrees   = GetClamped(m_orientation.m_yawDegrees, -85.f, 85.f);
-    m_orientation.m_pitchDegrees = GetClamped(m_orientation.m_pitchDegrees, -85.f, 85.f);
-    m_orientation.m_rollDegrees  = GetClamped(m_orientation.m_rollDegrees, -45.f, 45.f);
-
-
-    Vec3 forward, left, up;
-    m_orientation.GetAsVectors_IFwd_JLeft_KUp(forward, left, up);
-
-    //printf("x: %f, y: %f\n", leftStickPos.x, leftStickPos.y);
-
-    m_position += (leftStickPos * speed * leftStickMag * deltaSeconds).y * forward;
-    m_position += -(leftStickPos * speed * leftStickMag * deltaSeconds).x * left;
-
-    if (g_theInput->IsKeyDown('W'))
-    {
-        m_position += forward * speed * deltaSeconds;
-    }
-
-    if (g_theInput->IsKeyDown('S'))
-    {
-        m_position -= forward * speed * deltaSeconds;
-    }
-
-    if (g_theInput->IsKeyDown('A'))
-    {
-        m_position += left * speed * deltaSeconds;
-    }
-
-    if (g_theInput->IsKeyDown('D'))
-    {
-        m_position -= left * speed * deltaSeconds;
-    }
-
-    if (g_theInput->IsKeyDown('Q') || controller.IsButtonDown(XBOX_BUTTON_RS))
-    {
-        m_position.z -= deltaSeconds * speed;
-    }
-
-    if (g_theInput->IsKeyDown('E') || controller.IsButtonDown(XBOX_BUTTON_LS))
-    {
-        m_position.z += deltaSeconds * speed;
-    }
-    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 1024.f);
-    Mat44 ndcMatrix;
-    ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
-
-    m_camera->SetPosition(m_position);
-    m_camera->SetOrientation(m_orientation);
-
-
-    m_camera->SetCameraToRenderTransform(ndcMatrix);
+    HandleCameraModeSwitch();
+    HandleMouseAndControllerInput(deltaSeconds);
+    HandleMovementInput(deltaSeconds);
+    UpdateCameraSettings();
 
     // Input
     ProcessInput(deltaSeconds);
@@ -203,4 +127,120 @@ void Player::ProcessInput(float deltaTime)
             }
         }
     }
+}
+
+void Player::HandleCameraModeSwitch()
+{
+    if (g_theInput->WasKeyJustPressed('C'))
+    {
+        switch (m_cameraMode)
+        {
+        case CameraMode::SPECTATOR_FULL:
+            m_cameraMode = CameraMode::SPECTATOR_XY;
+            break;
+        case CameraMode::SPECTATOR_XY:
+            m_cameraMode = CameraMode::THIRD_PERSON;
+            break;
+        case CameraMode::THIRD_PERSON:
+            m_cameraMode = CameraMode::FIRST_PERSON;
+            break;
+        case CameraMode::FIRST_PERSON:
+            m_cameraMode = CameraMode::SPECTATOR_FULL;
+            break;
+        }
+    }
+}
+
+void Player::HandleMouseAndControllerInput(float deltaSeconds)
+{
+    // Mouse input for camera orientation
+    Vec2 cursorDelta = g_theInput->GetCursorClientDelta();
+    m_orientation.m_yawDegrees += -cursorDelta.x * 0.125f;
+    m_orientation.m_pitchDegrees += -cursorDelta.y * 0.125f;
+
+    // Controller input for camera orientation
+    const XboxController& controller    = g_theInput->GetController(0);
+    Vec2                  rightStickPos = controller.GetRightStick().GetPosition();
+    float                 rightStickMag = controller.GetRightStick().GetMagnitude();
+    float                 speed         = 4.0f;
+
+    if (rightStickMag > 0.f)
+    {
+        m_orientation.m_yawDegrees += -(rightStickPos * speed * rightStickMag * 0.125f).x;
+        m_orientation.m_pitchDegrees += -(rightStickPos * speed * rightStickMag * 0.125f).y;
+    }
+
+    // Controller trigger input for roll
+    float leftTrigger  = controller.GetLeftTrigger();
+    float rightTrigger = controller.GetRightTrigger();
+    m_orientation.m_rollDegrees += leftTrigger * 0.125f * deltaSeconds * speed;
+    m_orientation.m_rollDegrees -= rightTrigger * 0.125f * deltaSeconds * speed;
+
+    // Clamp orientation values
+    m_orientation.m_pitchDegrees = GetClamped(m_orientation.m_pitchDegrees, -85.f, 85.f);
+    m_orientation.m_rollDegrees  = GetClamped(m_orientation.m_rollDegrees, -45.f, 45.f);
+}
+
+void Player::HandleMovementInput(float deltaSeconds)
+{
+    const XboxController& controller = g_theInput->GetController(0);
+    float                 speed      = 4.0f;
+
+    // Sprint speed modifier
+    if (g_theInput->IsKeyDown(KEYCODE_LEFT_SHIFT) || controller.IsButtonDown(XBOX_BUTTON_A))
+    {
+        speed *= 20.f;
+    }
+
+    // Get movement vectors
+    Vec3 forward, left, up;
+    m_orientation.GetAsVectors_IFwd_JLeft_KUp(forward, left, up);
+
+    // Movement input processing
+    Vec3 movementDelta = Vec3::ZERO;
+
+    // Controller movement
+    Vec2  leftStickPos = controller.GetLeftStick().GetPosition();
+    float leftStickMag = controller.GetLeftStick().GetMagnitude();
+    movementDelta += (leftStickPos * speed * leftStickMag * deltaSeconds).y * forward;
+    movementDelta += -(leftStickPos * speed * leftStickMag * deltaSeconds).x * left;
+
+    // Keyboard movement
+    if (g_theInput->IsKeyDown('W'))
+        movementDelta += forward * speed * deltaSeconds;
+    if (g_theInput->IsKeyDown('S'))
+        movementDelta -= forward * speed * deltaSeconds;
+    if (g_theInput->IsKeyDown('A'))
+        movementDelta += left * speed * deltaSeconds;
+    if (g_theInput->IsKeyDown('D'))
+        movementDelta -= left * speed * deltaSeconds;
+
+    // Vertical movement - camera mode dependent
+    if (m_cameraMode == CameraMode::SPECTATOR_FULL)
+    {
+        if (g_theInput->IsKeyDown('Q') || controller.IsButtonDown(XBOX_BUTTON_RS))
+            movementDelta.z -= deltaSeconds * speed;
+        if (g_theInput->IsKeyDown('E') || controller.IsButtonDown(XBOX_BUTTON_LS))
+            movementDelta.z += deltaSeconds * speed;
+    }
+    else if (m_cameraMode == CameraMode::SPECTATOR_XY)
+    {
+        // In SpectatorXY mode, restrict movement to XY plane only
+        movementDelta.z = 0.0f;
+    }
+
+    // Apply movement
+    m_position += movementDelta;
+}
+
+void Player::UpdateCameraSettings()
+{
+    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 1024.f);
+    m_camera->SetPosition(m_position);
+    m_camera->SetOrientation(m_orientation);
+
+    // Set camera transform matrix
+    Mat44 ndcMatrix;
+    ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
+    m_camera->SetCameraToRenderTransform(ndcMatrix);
 }
