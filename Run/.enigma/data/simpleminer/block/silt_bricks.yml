@@ -1,0 +1,10 @@
+﻿properties:
+  snowy: boolean
+blockstate: simpleminer:block/silt_bricks
+hardness: 0.6
+resistance: 0.6
+opaque: true
+full_block: true
+material: earth
+sound_group: grass
+light_level: 0
