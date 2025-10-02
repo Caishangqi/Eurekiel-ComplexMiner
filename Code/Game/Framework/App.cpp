@@ -32,21 +32,21 @@
 
 // Window configuration parser
 #include "WindowConfigParser.hpp"
+#include "Engine/Core/Schedule/ScheduleSubsystem.hpp"
 
 // Windows API for testing
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-Window*                              g_theWindow   = nullptr;
-IRenderer*                           g_theRenderer = nullptr;
-App*                                 g_theApp      = nullptr;
-RandomNumberGenerator*               g_rng         = nullptr;
-InputSystem*                         g_theInput    = nullptr;
-AudioSubsystem*                      g_theAudio    = nullptr;
-Game*                                g_theGame     = nullptr;
-enigma::resource::ResourceSubsystem* g_theResource = nullptr;
-GUISubsystem*                        g_theGUI      = nullptr;
+Window*                g_theWindow   = nullptr;
+IRenderer*             g_theRenderer = nullptr;
+App*                   g_theApp      = nullptr;
+RandomNumberGenerator* g_rng         = nullptr;
+InputSystem*           g_theInput    = nullptr;
+AudioSubsystem*        g_theAudio    = nullptr;
+Game*                  g_theGame     = nullptr;
+GUISubsystem*          g_theGUI      = nullptr;
 
 App::App()
 {
@@ -115,6 +115,17 @@ void App::Startup(char*)
     auto consoleSubsystem = std::make_unique<ConsoleSubsystem>();
     GEngine->RegisterSubsystem(std::move(consoleSubsystem));
 
+    // Create and register ScheduleSubsystem (Phase 2: YAML-driven)
+    ScheduleConfig scheduleConfig;
+    // Try to load from YAML config file
+    if (!scheduleConfig.LoadFromFile(".enigma/config/engine/schedule.yml"))
+    {
+        // Fallback to default configuration if file not found
+        scheduleConfig = ScheduleConfig::GetDefaultConfig();
+    }
+    auto scheduleSubsystem = std::make_unique<ScheduleSubsystem>(scheduleConfig);
+    GEngine->RegisterSubsystem(std::move(scheduleSubsystem));
+
     // Create ResourceSubsystem with configuration
     ResourceConfig resourceConfig;
     resourceConfig.baseAssetPath    = ".enigma/assets";
@@ -147,6 +158,7 @@ void App::Startup(char*)
     g_theResource = GEngine->GetSubsystem<ResourceSubsystem>();
     g_theAudio    = GEngine->GetSubsystem<AudioSubsystem>();
     g_theGUI      = GEngine->GetSubsystem<GUISubsystem>();
+    g_theSchedule = GEngine->GetSubsystem<ScheduleSubsystem>();
 
     g_theEventSystem->Startup();
 
