@@ -1,5 +1,4 @@
-properties:
-  snowy: boolean
+properties: { }
 blockstate: simpleminer:block/grass
 hardness: 0.6
 resistance: 0.6

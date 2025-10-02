@@ -260,8 +260,13 @@
         <ClCompile Include="Gameplay\gui\GUIProfiler.cpp"/>
         <ClCompile Include="Gameplay\SimpleMinerGenerator.cpp"/>
         <ClCompile Include="Main_Windows.cpp" />
+        <Content Include="..\..\Run\.enigma\data\simpleminer\block\air.yml"/>
         <Content Include="..\..\Run\.enigma\data\simpleminer\block\cobblestone.yml"/>
         <Content Include="..\..\Run\.enigma\data\simpleminer\block\glowstone.yml"/>
+        <Content Include="..\..\Run\.enigma\data\simpleminer\block\ice.yml"/>
+        <Content Include="..\..\Run\.enigma\data\simpleminer\block\lava.yml"/>
+        <Content Include="..\..\Run\.enigma\data\simpleminer\block\obsidian.yml"/>
+        <Content Include="..\..\Run\.enigma\data\simpleminer\block\sand.yml"/>
         <Content Include="..\..\Run\.enigma\data\simpleminer\block\silt_bricks.yml"/>
         <Content Include="..\..\Run\.enigma\settings.yml" />
     </ItemGroup>

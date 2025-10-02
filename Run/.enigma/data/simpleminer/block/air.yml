@@ -1,0 +1,9 @@
+properties: { }
+blockstate: simpleminer:block/air
+hardness: 0.0
+resistance: 0.0
+opaque: false
+full_block: false
+material: air
+sound_group: air
+light_level: 0
