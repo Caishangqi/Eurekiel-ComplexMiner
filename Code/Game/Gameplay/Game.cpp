@@ -23,11 +23,13 @@
 #include "Engine/Resource/ResourceSubsystem.hpp"
 #include "Engine/Resource/ResourceCommon.hpp"
 #include "Engine/Core/Yaml.hpp"
+#include "Engine/Core/Schedule/ScheduleSubsystem.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Voxel/Chunk/Chunk.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Voxel/Builtin/DefaultBlock.hpp"
 #include "Engine/Window/Window.hpp"
+#include "Game/Framework/DummyTask.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
 #include "gui/GUIProfiler.hpp"
 
@@ -72,7 +74,7 @@ Game::Game()
 
     auto generator     = std::make_unique<SimpleMinerGenerator>();
     m_world            = std::make_unique<World>("world", 0, std::move(generator));
-    int renderDistance = settings.GetInt("video.simulationDistance", 16);
+    int renderDistance = settings.GetInt("video.simulationDistance", 12);
     m_world->SetChunkActivationRange(renderDistance);
     LogInfo("game", "Render distance configured: %d chunks", renderDistance);
 }
@@ -282,6 +284,11 @@ void Game::HandleKeyBoardEvent(float deltaTime)
             m_player->m_position    = Vec3(-2, 0, 1);
             m_player->m_orientation = EulerAngles();
         }
+    }
+
+    if (g_theInput->WasKeyJustPressed('H'))
+    {
+        g_theSchedule->AddTask(new DummyTask("DummyTask", 5000));
     }
 
     if (m_isGameStart)
