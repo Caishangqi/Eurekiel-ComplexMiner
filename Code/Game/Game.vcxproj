@@ -240,11 +240,13 @@
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\cobblestone.png"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\glowstone.png"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\silt_bricks.png"/>
+        <Content Include="..\..\Run\.enigma\config\engine\schedule.yml"/>
         <Content Include="..\..\Run\.enigma\data\Shaders\BlinnPhong.hlsl" />
         <Content Include="..\..\Run\.enigma\data\Shaders\Default.hlsl" />
         <Content Include="..\..\Run\.enigma\data\Shaders\Default2D.hlsl" />
         <Content Include="..\..\Run\.enigma\data\Shaders\Diffuse.hlsl" />
         <ClCompile Include="Framework\App.cpp"/>
+        <ClCompile Include="Framework\DummyTask.cpp"/>
         <ClCompile Include="Framework\GUISubsystem.cpp"/>
         <ClCompile Include="Framework\WindowConfigParser.cpp"/>
         <ClCompile Include="Gameplay\entity\Entity.cpp"/>
@@ -267,6 +269,7 @@
         <ClInclude Include="EngineBuildPreferences.hpp" />
         <ClInclude Include="Framework\App.hpp" />
         <ClInclude Include="Framework\GUISubsystem.hpp"/>
+        <ClInclude Include="Framework\DummyTask.hpp"/>
         <ClInclude Include="Framework\WindowConfigParser.hpp"/>
         <ClInclude Include="GameCommon.hpp" />
         <ClInclude Include="Gameplay\entity\Entity.hpp"/>

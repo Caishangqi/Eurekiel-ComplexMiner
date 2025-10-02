@@ -30,7 +30,6 @@ extern IRenderer*                           g_theRenderer;
 extern InputSystem*                         g_theInput;
 extern AudioSubsystem*                      g_theAudio;
 extern Game*                                g_theGame;
-extern enigma::resource::ResourceSubsystem* g_theResource;
 extern GUISubsystem*                        g_theGUI;
 
 constexpr float WORLD_SIZE_X   = 200.f;
