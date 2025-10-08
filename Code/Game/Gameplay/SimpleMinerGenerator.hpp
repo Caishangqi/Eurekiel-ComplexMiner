@@ -7,8 +7,8 @@
 #include <unordered_map>
 #include <memory>
 
-using namespace enigma::voxel::generation;
-using namespace enigma::voxel::chunk;
+using namespace enigma::voxel;
+using namespace enigma::voxel;
 
 /**
  * @brief SimpleMiner world generator implementation

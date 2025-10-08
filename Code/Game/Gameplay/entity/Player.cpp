@@ -96,15 +96,15 @@ void Player::ProcessInput(float deltaTime)
         if (m_guiPlayerInventory)
         {
             auto block = m_guiPlayerInventory->GetCurrentBlock();
-            if (block != nullptr && block != enigma::voxel::block::AIR)
+            if (block != nullptr && block != enigma::voxel::AIR)
             {
                 // Use std::floor to correctly convert floating point coordinates to square coordinates
                 int32_t blockX = static_cast<int32_t>(std::floor(m_position.x));
                 int32_t blockY = static_cast<int32_t>(std::floor(m_position.y));
                 int32_t blockZ = static_cast<int32_t>(std::floor(m_position.z));
 
-                auto topBlockZ     = m_game->m_world->GetTopBlockZ(enigma::voxel::block::BlockPos(blockX, blockY, blockZ));
-                auto blockPlacePos = enigma::voxel::block::BlockPos(blockX, blockY, topBlockZ + 1);
+                auto topBlockZ     = m_game->m_world->GetTopBlockZ(enigma::voxel::BlockPos(blockX, blockY, blockZ));
+                auto blockPlacePos = enigma::voxel::BlockPos(blockX, blockY, topBlockZ + 1);
                 m_game->m_world->SetBlockState(blockPlacePos, block->GetDefaultState());
             }
         }
@@ -115,15 +115,15 @@ void Player::ProcessInput(float deltaTime)
         // Destroy Block (replace with air)
         if (m_game->m_world)
         {
-            if (enigma::voxel::block::AIR)
+            if (enigma::voxel::AIR)
             {
                 int32_t blockX = static_cast<int32_t>(std::floor(m_position.x));
                 int32_t blockY = static_cast<int32_t>(std::floor(m_position.y));
                 int32_t blockZ = static_cast<int32_t>(std::floor(m_position.z));
 
-                auto topBlockZ       = m_game->m_world->GetTopBlockZ(enigma::voxel::block::BlockPos(blockX, blockY, blockZ));
-                auto blockDestroyPos = enigma::voxel::block::BlockPos(blockX, blockY, topBlockZ);
-                m_game->m_world->SetBlockState(blockDestroyPos, enigma::voxel::block::AIR->GetDefaultState());
+                auto topBlockZ       = m_game->m_world->GetTopBlockZ(enigma::voxel::BlockPos(blockX, blockY, blockZ));
+                auto blockDestroyPos = enigma::voxel::BlockPos(blockX, blockY, topBlockZ);
+                m_game->m_world->SetBlockState(blockDestroyPos, enigma::voxel::AIR->GetDefaultState());
             }
         }
     }

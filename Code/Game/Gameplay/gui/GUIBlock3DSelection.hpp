@@ -28,8 +28,8 @@ public:
     void OnDestroy() override;
 
 private:
-    Player*                        m_player = nullptr;
-    std::vector<Vertex_PCU>        m_vertices;
-    enigma::voxel::block::BlockPos m_blockPosition;
-    AABB3                          m_unitBlock = AABB3(Vec3(0, 0, 0), Vec3(1, 1, 1));
+    Player*                 m_player = nullptr;
+    std::vector<Vertex_PCU> m_vertices;
+    enigma::voxel::BlockPos m_blockPosition;
+    AABB3                   m_unitBlock = AABB3(Vec3(0, 0, 0), Vec3(1, 1, 1));
 };

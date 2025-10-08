@@ -2,7 +2,7 @@
 #include "../GameCommon.hpp"
 #include "Engine/Math/AABB2.hpp"
 
-namespace enigma::voxel::world
+namespace enigma::voxel
 {
     class World;
 }
@@ -34,8 +34,8 @@ public:
     void RegisterBlocks();
 
 public:
-    std::unique_ptr<enigma::voxel::world::World> m_world;
-    bool                                         m_enableChunkDebug = true;
+    std::unique_ptr<enigma::voxel::World> m_world;
+    bool                                  m_enableChunkDebug = true;
 
 public:
     bool m_isInMainMenu = true;

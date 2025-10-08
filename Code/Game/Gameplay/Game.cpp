@@ -70,11 +70,11 @@ Game::Game()
     RegisterBlocks();
 
     /// World Creation with RAII constructor
-    using namespace enigma::voxel::world;
+    using namespace enigma::voxel;
 
     auto generator     = std::make_unique<SimpleMinerGenerator>();
     m_world            = std::make_unique<World>("world", 0, std::move(generator));
-    int renderDistance = settings.GetInt("video.simulationDistance", 12);
+    int renderDistance = settings.GetInt("video.simulationDistance", 18);
     m_world->SetChunkActivationRange(renderDistance);
     LogInfo("game", "Render distance configured: %d chunks", renderDistance);
 }
@@ -182,8 +182,8 @@ void Game::Update()
         auto* chunkManager = m_world->GetChunkManager().get();
         UNUSED(chunkManager)
         // Calculate player's current chunk coordinates using proper constants
-        int32_t playerChunkX = static_cast<int32_t>(std::floor(m_player->m_position.x / enigma::voxel::chunk::Chunk::CHUNK_SIZE_X));
-        int32_t playerChunkY = static_cast<int32_t>(std::floor(m_player->m_position.y / enigma::voxel::chunk::Chunk::CHUNK_SIZE_Y));
+        int32_t playerChunkX = static_cast<int32_t>(std::floor(m_player->m_position.x / enigma::voxel::Chunk::CHUNK_SIZE_X));
+        int32_t playerChunkY = static_cast<int32_t>(std::floor(m_player->m_position.y / enigma::voxel::Chunk::CHUNK_SIZE_Y));
 
         UNUSED(playerChunkX)
         UNUSED(playerChunkY)

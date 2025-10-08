@@ -240,6 +240,7 @@
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\cobblestone.png"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\glowstone.png"/>
         <Content Include="..\..\Run\.enigma\assets\simpleminer\textures\block\silt_bricks.png"/>
+        <Content Include="..\..\Run\.enigma\config\engine\chunkstorage.yml"/>
         <Content Include="..\..\Run\.enigma\config\engine\schedule.yml"/>
         <Content Include="..\..\Run\.enigma\data\Shaders\BlinnPhong.hlsl" />
         <Content Include="..\..\Run\.enigma\data\Shaders\Default.hlsl" />

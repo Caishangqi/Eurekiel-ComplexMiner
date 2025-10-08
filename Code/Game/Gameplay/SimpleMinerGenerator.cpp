@@ -9,7 +9,7 @@
 #include "Engine/Math/IntVec3.hpp"
 
 using namespace enigma::registry::block;
-using namespace enigma::voxel::block;
+using namespace enigma::voxel;
 
 void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t chunkZ, uint32_t worldSeed)
 {
