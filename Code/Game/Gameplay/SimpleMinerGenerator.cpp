@@ -11,6 +11,8 @@
 using namespace enigma::registry::block;
 using namespace enigma::voxel;
 
+DEFINE_LOG_CATEGORY(LogWorldGenerator);
+
 void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t chunkZ, uint32_t worldSeed)
 {
     if (!chunk)
@@ -198,7 +200,7 @@ void SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
     // Mark chunk as generated and dirty for mesh building
     chunk->SetGenerated(true);
     chunk->MarkDirty();
-    LogDebug("SimpleMinerGenerator", Stringf("Generated chunk (%d, %d) with SimpleMinerGenerator", chunkX, chunkZ));
+    LogDebug(LogWorldGenerator, "Generated chunk (%d, %d) with SimpleMinerGenerator", chunkX, chunkZ);
 }
 
 std::shared_ptr<enigma::registry::block::Block> SimpleMinerGenerator::GetCachedBlock(const std::string& blockName) const
@@ -275,8 +277,7 @@ void SimpleMinerGenerator::InitializeBlockCache() const
     m_goldOreId    = BlockRegistry::GetBlockId("simpleminer", "gold_ore");
     m_diamondOreId = BlockRegistry::GetBlockId("simpleminer", "diamond_ore");
 
-    LogInfo("SimpleMinerGenerator", Stringf("Initialized block cache with %d blocks, pre-cached common block IDs",
-                                            static_cast<int>(m_blockIdCache.size())));
+    LogInfo(LogWorldGenerator, "Initialized block cache with %d blocks, pre-cached common block IDs", static_cast<int>(m_blockIdCache.size()));
 }
 
 std::string SimpleMinerGenerator::DetermineBlockType(const IntVec3& globalPos, int   terrainHeight,

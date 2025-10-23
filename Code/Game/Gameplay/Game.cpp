@@ -23,6 +23,7 @@
 #include "Engine/Resource/ResourceSubsystem.hpp"
 #include "Engine/Resource/ResourceCommon.hpp"
 #include "Engine/Core/Yaml.hpp"
+#include "Engine/Core/LogCategory/PredefinedCategories.hpp"
 #include "Engine/Core/Schedule/ScheduleSubsystem.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Voxel/Chunk/Chunk.hpp"
@@ -74,9 +75,9 @@ Game::Game()
 
     auto generator     = std::make_unique<SimpleMinerGenerator>();
     m_world            = std::make_unique<World>("world", 0, std::move(generator));
-    int renderDistance = settings.GetInt("video.simulationDistance", 18);
+    int renderDistance = settings.GetInt("video.simulationDistance", 32);
     m_world->SetChunkActivationRange(renderDistance);
-    LogInfo("game", "Render distance configured: %d chunks", renderDistance);
+    LogInfo(LogGame, "Render distance configured: %d chunks", renderDistance);
 }
 
 Game::~Game()
@@ -84,7 +85,7 @@ Game::~Game()
     // Save and close world before cleanup
     if (m_world)
     {
-        LogInfo("game", "Saving world before game shutdown...");
+        LogInfo(LogGame, "Saving world before game shutdown...");
         m_world->SaveWorld();
         m_world->CloseWorld();
         m_world.reset(); // Explicitly release the world
@@ -321,7 +322,7 @@ void Game::RegisterBlocks()
 {
     using namespace enigma::registry::block;
 
-    LogInfo("game", "Starting block registration phase...");
+    LogInfo(LogGame, "Starting block registration phase...");
 
     // Load blocks from the simpleminer namespace
     std::filesystem::path dataPath      = ".enigma\\data";
@@ -330,5 +331,5 @@ void Game::RegisterBlocks()
     // Load all blocks from the simpleminer namespace
     BlockRegistry::LoadNamespaceBlocks(dataPath.string(), namespaceName);
     AIR = BlockRegistry::GetBlock("simpleminer", "air");
-    LogInfo("game", "Block registration completed!");
+    LogInfo(LogGame, "Block registration completed!");
 }

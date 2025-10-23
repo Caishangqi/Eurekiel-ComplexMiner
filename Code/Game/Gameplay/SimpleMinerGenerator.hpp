@@ -7,9 +7,10 @@
 #include <unordered_map>
 #include <memory>
 
-using namespace enigma::voxel;
-using namespace enigma::voxel;
+#include "Engine/Core/LogCategory/LogCategory.hpp"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogWorldGenerator)
+using namespace enigma::voxel;
 /**
  * @brief SimpleMiner world generator implementation
  *

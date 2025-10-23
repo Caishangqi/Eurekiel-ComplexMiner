@@ -30,8 +30,17 @@
 #include "Engine/Core/Console/ConsoleSubsystem.hpp"
 #include "Engine/Registry/Core/RegisterSubsystem.hpp"
 
+// MessageLog system integration
+#include "Engine/Core/MessageLog/MessageLogSubsystem.hpp"
+#include "Engine/Core/MessageLog/MessageLogAppender.hpp"
+
+// ImGui system integration
+#include "Engine/Core/ImGui/ImGuiSubsystem.hpp"
+#include "Engine/Core/ImGui/RendererImGuiContext.hpp"
+
 // Window configuration parser
 #include "WindowConfigParser.hpp"
+#include "Engine/Core/LogCategory/PredefinedCategories.hpp"
 #include "Engine/Core/Schedule/ScheduleSubsystem.hpp"
 
 // Windows API for testing
@@ -112,8 +121,22 @@ void App::Startup(char*)
     GEngine->RegisterSubsystem(std::move(logger));
 
     // Create and register ConsoleSubsystem (high priority, after logger)
-    auto consoleSubsystem = std::make_unique<ConsoleSubsystem>();
-    GEngine->RegisterSubsystem(std::move(consoleSubsystem));
+    /*auto consoleSubsystem = std::make_unique<ConsoleSubsystem>();
+    GEngine->RegisterSubsystem(std::move(consoleSubsystem));*/
+
+    // Create and register MessageLogSubsystem (after console, before imgui)
+    auto messageLogSubsystem = std::make_unique<MessageLogSubsystem>();
+    GEngine->RegisterSubsystem(std::move(messageLogSubsystem));
+
+    // Create RendererImGuiContext包装IRenderer（App-managed）
+    std::shared_ptr<RendererImGuiContext> m_imguiRenderContext = std::make_shared<RendererImGuiContext>(g_theRenderer);
+
+    // Create and register ImGuiSubsystem (after renderer startup)
+    ImGuiSubsystemConfig imguiConfig;
+    imguiConfig.renderContext = m_imguiRenderContext.get(); // ✅ 使用IImGuiRenderContext
+    imguiConfig.targetWindow  = g_theWindow;
+    auto imguiSubsystem       = std::make_unique<ImGuiSubsystem>(imguiConfig);
+    GEngine->RegisterSubsystem(std::move(imguiSubsystem));
 
     // Create and register ScheduleSubsystem (Phase 2: YAML-driven)
     ScheduleConfig scheduleConfig;
@@ -170,6 +193,7 @@ void App::Startup(char*)
     g_theInput->Startup();
 
     GEngine->Startup();
+
     DebugRenderSystemStartup(debugRenderConfig);
 
     g_theGame = new Game();
@@ -285,7 +309,7 @@ bool App::Event_ConsoleStartup(EventArgs& args)
 {
     UNUSED(args)
     using namespace enigma::core;
-    LogInfo("Game", "This is an example log info test.");
+    LogInfo(LogGame, "This is an example log info test.");
 
     // Output to DevConsole (will be mirrored to IDE Console via DevConsoleAppender)
     g_theDevConsole->AddLine(Rgba8(95, 95, 95),
@@ -342,6 +366,10 @@ void App::AdjustForPauseAndTimeDistortion()
 void App::BeginFrame()
 {
     Clock::TickSystemClock();
+
+    // Begin Engine subsystems frame (includes ImGuiSubsystem::BeginFrame())
+    GEngine->BeginFrame();
+
     g_theInput->BeginFrame();
     g_theWindow->BeginFrame();
     g_theRenderer->BeginFrame();
@@ -398,6 +426,9 @@ void App::Render() const
     g_theGame->Render();
     g_theGUI->Render();
     g_theDevConsole->Render(m_consoleSpace);
+
+    // Render ImGui (after all other rendering)
+    g_theImGui->Render();
 }
 
 void App::EndFrame()
@@ -410,6 +441,9 @@ void App::EndFrame()
     g_theEventSystem->EndFrame();
     g_theDevConsole->EndFrame();
     g_theGUI->EndFrame();
+
+    // End Engine subsystems frame (includes ImGuiSubsystem::EndFrame())
+    GEngine->EndFrame();
 
     if (m_isPendingRestart)
     {

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Engine/Core/EventSystem.hpp"
+#include "Engine/Core/Timer.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
 
 struct Vertex_PCU;
@@ -32,4 +33,19 @@ private:
     size_t m_numTransparentIndices   = 0;
     size_t m_numOpaqueTriangles      = 0;
     size_t m_numTransparentTriangles = 0;
+
+    int32_t m_numOfPendingTaskChunkGen   = 0;
+    int32_t m_numOfExecutingTaskChunkGen = 0;
+    int32_t m_numOfCompleteTaskChunkGen  = 0;
+
+    int32_t m_numOfPendingTaskMeshBuilding   = 0;
+    int32_t m_numOfExecutingTaskMeshBuilding = 0;
+    int32_t m_numOfCompleteTaskMeshBuilding  = 0;
+
+    int32_t m_numOfPendingTaskFileIO   = 0;
+    int32_t m_numOfExecutingTaskFileIO = 0;
+    int32_t m_numOfCompleteTaskFileIO  = 0;
+
+private:
+    Timer m_threadPoolUpdateTimer;
 };

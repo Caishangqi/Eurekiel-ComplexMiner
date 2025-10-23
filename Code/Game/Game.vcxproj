@@ -484,7 +484,6 @@
       <Content Include="..\..\Run\.enigma\config\engine\config.yml" />
       <Content Include="..\..\Run\.enigma\config\engine\module.yml" />
       <Content Include="..\..\Run\.enigma\config\GameConfig.xml" />
-      <Content Include="..\..\Run\.enigma\console_history.txt" />
       <Content Include="..\..\Run\.enigma\data\Audio\Click.mp3" />
       <Content Include="..\..\Run\.enigma\data\Fonts\CaiziiFixedFont" />
       <Content Include="..\..\Run\.enigma\data\Fonts\SquirrelFixedFont" />

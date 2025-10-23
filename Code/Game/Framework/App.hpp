@@ -6,13 +6,14 @@
 class Window;
 class Game;
 
-static enigma::core::YamlConfiguration settings;    // Minecraft Style global configuration
+static enigma::core::YamlConfiguration settings; // Minecraft Style global configuration
 
 // Forward declaration for resource system
 namespace enigma::resource
 {
     class ResourceSubsystem;
 }
+
 
 extern Window* g_theWindow;
 
