@@ -294,9 +294,27 @@ bool SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
                 // 因为样条曲线的符号已经调整过了
                 density += s * t;
 
-                // 注意：Erosion 和 PV 在教授的实现中只用于 Biome 选择
-                // 它们不影响 terrain density！
-                // 这是与我们之前复杂实现的关键区别
+                // 步骤 4: Erosion Factor (Minecraft 1.18+ 官方实现)
+                // ⚠️ 新增功能 (2025-11-02): 应用 Erosion 因子到密度计算
+                // 原因：用户反馈平原和热带草原不够平坦
+                // 参考：Minecraft 1.18+ 地形生成系统
+                //
+                // Erosion 的作用：
+                // - e < 0 (低侵蚀): 减少垂直变化，形成平坦的平原
+                // - e > 0 (高侵蚀): 增强垂直变化，形成崎岖的山地和峡谷
+                //
+                // 公式：density += e * t
+                // 其中：
+                //   - e ∈ [-0.3, 0.6]（通过样条曲线从 Erosion 噪声映射）
+                //   - t: 归一化垂直偏移（已在上面计算）
+                //
+                // 效果：
+                //   - 平原 (e ≈ -0.3): density += (-0.3) * t，地形更平坦
+                //   - 山地 (e ≈ 0.6): density += 0.6 * t，地形更崎岖
+                density += e * t;
+
+                // 注意：PV (Peaks/Valleys) 在当前实现中只用于 Biome 选择
+                // 如果需要更精细的峰谷控制，可以添加：density += pv * |c| * t
 
                 // Set block type based on density
                 if (density < 0.0f)
@@ -1334,4 +1352,51 @@ float SimpleMinerGenerator::Compute2dPerlinNoise(float        x, float          
 {
     // 使用引擎的Perlin噪声实现
     return ::Compute2dPerlinNoise(x, y, scale, octaves, persistence, octaveScale, renormalize, seed);
+}
+
+int SimpleMinerGenerator::GetGroundHeightAt(int globalX, int globalY) const
+{
+    // 使用二分搜索查找地面高度
+    // 搜索范围: [0, CHUNK_SIZE_Z - 1]
+    // 当 density < 0.0f 时表示固体方块
+    // 返回最高的固体方块Z坐标
+
+    int low  = 0;
+    int high = Chunk::CHUNK_SIZE_Z - 1; // 128 - 1 = 127
+
+    // 二分搜索: 查找最高的固体方块
+    // 目标: 找到最大的 z 使得 SampleNoise3D(globalX, globalY, z) < 0.0f
+    while (low < high)
+    {
+        // 向上取整的中点,避免死循环
+        int mid = (low + high + 1) / 2;
+
+        // 采样密度噪声
+        float density = SampleNoise3D(globalX, globalY, mid);
+
+        // density < 0.0f 表示固体方块
+        if (density < 0.0f)
+        {
+            // mid 是固体方块,尝试更高的位置
+            low = mid;
+        }
+        else
+        {
+            // mid 是空气方块,尝试更低的位置
+            high = mid - 1;
+        }
+    }
+
+    // 边界检查: 如果没有找到固体方块(全是空气),返回海平面
+    if (low == 0)
+    {
+        float densityAtZero = SampleNoise3D(globalX, globalY, 0);
+        if (densityAtZero >= 0.0f)
+        {
+            // Z=0 也是空气,返回海平面作为默认值
+            return SEA_LEVEL;
+        }
+    }
+
+    return low;
 }

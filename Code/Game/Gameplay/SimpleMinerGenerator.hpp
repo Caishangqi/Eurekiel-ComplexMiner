@@ -388,4 +388,19 @@ public:
      * @return String describing this generator's configuration
      */
     std::string GetConfigDescription() const override;
+
+    /**
+     * @brief Get ground height at specific world position using noise calculation
+     * 
+     * This method calculates the ground height at a given (x, y) position by sampling
+     * the 3D density noise without accessing chunk data. It uses binary search to find
+     * the highest solid block (density < 0.0f) efficiently.
+     * 
+     * Thread-safe: Does not access chunk data, only uses noise calculations.
+     * 
+     * @param globalX World X coordinate
+     * @param globalY World Y coordinate (Z in Minecraft terms)
+     * @return Z coordinate of the highest solid block, or SEA_LEVEL if no solid block found
+     */
+    int GetGroundHeightAt(int globalX, int globalY) const override;
 };
