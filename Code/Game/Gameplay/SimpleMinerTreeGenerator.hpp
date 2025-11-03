@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Voxel/Generation/TreeGenerator.hpp"
+#include "TreeStamps/CactusStamp.hpp"
 #include <memory>
 #include <unordered_map>
 #include <string>

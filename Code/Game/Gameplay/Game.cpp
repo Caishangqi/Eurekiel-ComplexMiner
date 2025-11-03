@@ -74,10 +74,10 @@ Game::Game()
     using namespace enigma::voxel;
 
     auto generator     = std::make_unique<SimpleMinerGenerator>();
-    m_world            = std::make_unique<World>("world", 0, std::move(generator));
-    int renderDistance = settings.GetInt("video.simulationDistance", 32);
+    m_world            = std::make_unique<World>("world", 3568, std::move(generator));
+    int renderDistance = settings.GetInt("video.simulationDistance", 18);
     m_world->SetChunkActivationRange(renderDistance);
-    LogInfo(LogGame, "Render distance configured: %d chunks", renderDistance);
+    LogInfo(LogGame, "Render distance configured: %d chunks (using independent generators per chunk)", renderDistance);
 }
 
 Game::~Game()

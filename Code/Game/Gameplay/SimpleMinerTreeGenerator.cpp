@@ -32,6 +32,7 @@ void SimpleMinerTreeGenerator::InitializeStampCache()
     m_stampCache["spruce_snow"] = std::make_shared<SpruceSnowTreeStamp>();
     m_stampCache["jungle"]      = std::make_shared<JungleTreeStamp>();
     m_stampCache["acacia"]      = std::make_shared<AcaciaTreeStamp>();
+    m_stampCache["cactus"]      = std::make_shared<CactusStamp>();
 
     LogInfo("TreeGenerator", "Initialized %zu tree stamp types", m_stampCache.size());
 }
@@ -55,10 +56,12 @@ std::string SimpleMinerTreeGenerator::SelectTreeType(const enigma::voxel::Biome*
 
     std::string biomeName = biome->GetName();
 
-    // Desert biome -> Acacia trees
+    // Desert biome -> Cactus (70%) or Acacia trees (30%)
     if (biomeName.find("desert") != std::string::npos)
     {
-        return "acacia";
+        // Use rotation noise to determine cactus vs acacia
+        float random = SampleTreeRotationNoise(globalX, globalY);
+        return (random < 0.7f) ? "cactus" : "acacia";
     }
     // Jungle biome -> Jungle trees
     else if (biomeName.find("jungle") != std::string::npos)
@@ -260,6 +263,15 @@ std::shared_ptr<TreeStamp> SimpleMinerTreeGenerator::GetOrCreateStamp(const std:
         else if (sizeLower == "large")
             newStamp = std::make_shared<AcaciaTreeStamp>(AcaciaTreeStamp::CreateLarge());
     }
+    else if (treeType == "cactus")
+    {
+        if (sizeLower == "small")
+            newStamp = std::make_shared<CactusStamp>(CactusStamp::CreateSmall());
+        else if (sizeLower == "medium")
+            newStamp = std::make_shared<CactusStamp>(CactusStamp::CreateMedium());
+        else if (sizeLower == "large")
+            newStamp = std::make_shared<CactusStamp>(CactusStamp::CreateLarge());
+    }
 
     // If stamp was created, add to cache
     if (newStamp)
@@ -305,10 +317,6 @@ std::string SimpleMinerTreeGenerator::DetermineTreeType(int globalX, int globalY
 
 bool SimpleMinerTreeGenerator::CanPlaceTree(int globalX, int globalY, int groundHeight, int treeHeight) const
 {
-    // Suppress unused parameter warnings (parameters reserved for future biome/terrain validation)
-    UNUSED(globalX);
-    UNUSED(globalY);
-
     // Check if ground height is valid
     if (groundHeight < 0 || groundHeight >= Chunk::CHUNK_SIZE_Z - treeHeight)
     {

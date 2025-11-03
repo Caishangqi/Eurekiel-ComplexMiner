@@ -376,6 +376,7 @@
         <ClCompile Include="Gameplay\SimpleMinerTreeGenerator.cpp"/>
         <ClCompile Include="Gameplay\TreeStamps\AcaciaTreeStamp.cpp"/>
         <ClCompile Include="Gameplay\TreeStamps\BirchTreeStamp.cpp"/>
+        <ClCompile Include="Gameplay\TreeStamps\CactusStamp.cpp"/>
         <ClCompile Include="Gameplay\TreeStamps\JungleTreeStamp.cpp"/>
         <ClCompile Include="Gameplay\TreeStamps\OakTreeStamp.cpp"/>
         <ClCompile Include="Gameplay\TreeStamps\SpruceTreeStamp.cpp"/>
@@ -436,6 +437,7 @@
         <ClInclude Include="Gameplay\SimpleMinerTreeGenerator.hpp"/>
         <ClInclude Include="Gameplay\TreeStamps\AcaciaTreeStamp.hpp"/>
         <ClInclude Include="Gameplay\TreeStamps\BirchTreeStamp.hpp"/>
+        <ClInclude Include="Gameplay\TreeStamps\CactusStamp.hpp"/>
         <ClInclude Include="Gameplay\TreeStamps\JungleTreeStamp.hpp"/>
         <ClInclude Include="Gameplay\TreeStamps\OakTreeStamp.hpp"/>
         <ClInclude Include="Gameplay\TreeStamps\SpruceTreeStamp.hpp"/>
