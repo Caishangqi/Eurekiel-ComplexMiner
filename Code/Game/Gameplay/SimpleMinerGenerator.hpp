@@ -204,6 +204,19 @@ private:
     std::shared_ptr<enigma::voxel::Biome> m_stonyPeaksBiome;
     std::shared_ptr<enigma::voxel::Biome> m_snowyPeaksBiome;
 
+    // Tree Block IDs (cached for performance)
+    mutable int m_oakLogId           = -1;
+    mutable int m_oakLeavesId        = -1;
+    mutable int m_birchLogId         = -1;
+    mutable int m_birchLeavesId      = -1;
+    mutable int m_spruceLogId        = -1;
+    mutable int m_spruceLeavesId     = -1;
+    mutable int m_spruceLeavesSnowId = -1;
+    mutable int m_jungleLogId        = -1;
+    mutable int m_jungleLeavesId     = -1;
+    mutable int m_acaciaLogId        = -1;
+    mutable int m_acaciaLeavesId     = -1;
+
     // ========== Private Helper Methods ==========
 
     /**
@@ -245,14 +258,6 @@ private:
      * @brief Classify erosion value into category
      */
     ErosionCategory ClassifyErosion(float e) const;
-
-    /**
-     * @brief Get biome at specific world position
-     * @param globalX World X coordinate
-     * @param globalY World Y coordinate (Z in Minecraft terms)
-     * @return Biome instance for this location
-     */
-    std::shared_ptr<enigma::voxel::Biome> GetBiomeAt(int globalX, int globalY) const;
 
     /**
      * @brief Sample 2D noise for specific type
@@ -301,6 +306,19 @@ private:
      * @return Density value
      */
     float SampleNoise3D(int globalX, int globalY, int globalZ) const;
+
+    /**
+     * @brief Calculate final terrain density at specific position
+     *
+     * Reuses existing terrain shaping functions to compute accurate density.
+     * This ensures GetGroundHeightAt() returns correct ground heights.
+     *
+     * @param globalX World X coordinate
+     * @param globalY World Y coordinate
+     * @param globalZ World Z coordinate (height)
+     * @return Final density value (< 0.0f = solid, >= 0.0f = air)
+     */
+    float CalculateFinalDensity(int globalX, int globalY, int globalZ) const;
 
     /**
      * @brief Get cached block by name
@@ -403,4 +421,18 @@ public:
      * @return Z coordinate of the highest solid block, or SEA_LEVEL if no solid block found
      */
     int GetGroundHeightAt(int globalX, int globalY) const override;
+
+    /**
+     * @brief Get biome at specific world position
+     * 
+     * This method is used by SimpleMinerTreeGenerator to determine tree types
+     * based on biome characteristics. Made public to allow tree generator access.
+     * 
+     * Thread-safe: Only uses noise calculations, no chunk data access.
+     * 
+     * @param globalX World X coordinate
+     * @param globalY World Y coordinate (Z in Minecraft terms)
+     * @return Biome instance for this location
+     */
+    std::shared_ptr<enigma::voxel::Biome> GetBiomeAt(int globalX, int globalY) const;
 };

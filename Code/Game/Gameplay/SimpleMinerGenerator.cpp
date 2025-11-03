@@ -1,4 +1,5 @@
 #include "SimpleMinerGenerator.hpp"
+#include "SimpleMinerTreeGenerator.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Core/Logger/LoggerAPI.hpp"
 #include "Engine/Core/StringUtils.hpp"
@@ -372,6 +373,12 @@ bool SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
     // Apply biome surface rules (grass, sand, snow, etc.)
     ApplySurfaceRules(chunk, chunkX, chunkY);
 
+    // Phase 7-9: Generate trees
+    // Create thread-local TreeGenerator instance to avoid race conditions
+    // Each thread gets its own instance with independent noise cache
+    auto treeGenerator = std::make_unique<SimpleMinerTreeGenerator>(effectiveSeed, this, this);
+    treeGenerator->GenerateTrees(chunk, chunkX, chunkY);
+
     // Mark chunk as generated and dirty for mesh building
     chunk->SetGenerated(true);
     chunk->MarkDirty();
@@ -489,6 +496,19 @@ void SimpleMinerGenerator::InitializeBlockCache()
     m_ironOreId    = BlockRegistry::GetBlockId("simpleminer", "iron_ore");
     m_goldOreId    = BlockRegistry::GetBlockId("simpleminer", "gold_ore");
     m_diamondOreId = BlockRegistry::GetBlockId("simpleminer", "diamond_ore");
+
+    // ========== Phase 7-9: 树木方块ID缓存 ==========
+    m_oakLogId           = BlockRegistry::GetBlockId("simpleminer", "oak_log");
+    m_oakLeavesId        = BlockRegistry::GetBlockId("simpleminer", "oak_leaves");
+    m_birchLogId         = BlockRegistry::GetBlockId("simpleminer", "birch_log");
+    m_birchLeavesId      = BlockRegistry::GetBlockId("simpleminer", "birch_leaves");
+    m_spruceLogId        = BlockRegistry::GetBlockId("simpleminer", "spruce_log");
+    m_spruceLeavesId     = BlockRegistry::GetBlockId("simpleminer", "spruce_leaves");
+    m_spruceLeavesSnowId = BlockRegistry::GetBlockId("simpleminer", "spruce_leaves_snow");
+    m_jungleLogId        = BlockRegistry::GetBlockId("simpleminer", "jungle_log");
+    m_jungleLeavesId     = BlockRegistry::GetBlockId("simpleminer", "jungle_leaves");
+    m_acaciaLogId        = BlockRegistry::GetBlockId("simpleminer", "acacia_log");
+    m_acaciaLeavesId     = BlockRegistry::GetBlockId("simpleminer", "acacia_leaves");
 
     // ========== 日志输出缓存统计 ==========
     LogInfo(LogWorldGenerator,
@@ -1354,6 +1374,39 @@ float SimpleMinerGenerator::Compute2dPerlinNoise(float        x, float          
     return ::Compute2dPerlinNoise(x, y, scale, octaves, persistence, octaveScale, renormalize, seed);
 }
 
+float SimpleMinerGenerator::CalculateFinalDensity(int globalX, int globalY, int globalZ) const
+{
+    // 复用现有函数计算地形参数
+    float continentalness = SampleContinentalness(globalX, globalY);
+    float erosion         = SampleErosion(globalX, globalY);
+
+    float h = EvaluateHeightOffset(continentalness);
+    float s = EvaluateSquashing(continentalness);
+    float e = EvaluateErosion(erosion);
+
+    // 基础密度 + Bias（与GenerateChunk完全一致）
+    float densityNoise = SampleNoise3D(globalX, globalY, globalZ);
+    float b_bias       = BIAS_PER_Z * (static_cast<float>(globalZ) - TERRAIN_BASE_HEIGHT);
+    float density      = densityNoise + b_bias;
+
+    // 应用地形塑形（与GenerateChunk完全一致）
+    density -= h; // Height offset
+
+    // Squashing factor
+    float dynamic_base = TERRAIN_BASE_HEIGHT + (h * (static_cast<float>(Chunk::CHUNK_SIZE_Z) / 2.0f));
+    if (dynamic_base <= 0.0f)
+    {
+        dynamic_base = 1.0f;
+    }
+    float t = (static_cast<float>(globalZ) - dynamic_base) / dynamic_base;
+    density += s * t;
+
+    // Erosion factor
+    density += e * t;
+
+    return density;
+}
+
 int SimpleMinerGenerator::GetGroundHeightAt(int globalX, int globalY) const
 {
     // 使用二分搜索查找地面高度
@@ -1365,14 +1418,14 @@ int SimpleMinerGenerator::GetGroundHeightAt(int globalX, int globalY) const
     int high = Chunk::CHUNK_SIZE_Z - 1; // 128 - 1 = 127
 
     // 二分搜索: 查找最高的固体方块
-    // 目标: 找到最大的 z 使得 SampleNoise3D(globalX, globalY, z) < 0.0f
+    // 目标: 找到最大的 z 使得 CalculateFinalDensity(globalX, globalY, z) < 0.0f
     while (low < high)
     {
         // 向上取整的中点,避免死循环
         int mid = (low + high + 1) / 2;
 
-        // 采样密度噪声
-        float density = SampleNoise3D(globalX, globalY, mid);
+        // 采样完整的地形密度（包含所有塑形因子）
+        float density = CalculateFinalDensity(globalX, globalY, mid);
 
         // density < 0.0f 表示固体方块
         if (density < 0.0f)
@@ -1390,7 +1443,7 @@ int SimpleMinerGenerator::GetGroundHeightAt(int globalX, int globalY) const
     // 边界检查: 如果没有找到固体方块(全是空气),返回海平面
     if (low == 0)
     {
-        float densityAtZero = SampleNoise3D(globalX, globalY, 0);
+        float densityAtZero = CalculateFinalDensity(globalX, globalY, 0);
         if (densityAtZero >= 0.0f)
         {
             // Z=0 也是空气,返回海平面作为默认值
