@@ -176,7 +176,7 @@ float SimpleMinerTreeGenerator::GetTreeThreshold(const enigma::voxel::Biome* bio
     // Default threshold (for other biomes)
     else
     {
-        return 0.92f; // Increased from 0.85 to reduce overall density
+        return 1.0; // Increased from 0.85 to reduce overall density
     }
 }
 

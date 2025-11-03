@@ -13,6 +13,9 @@
     <Filter Include="Gameplay\Events">
       <UniqueIdentifier>{12942f1b-b419-417b-8ca4-e491286df2e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Gameplay\TreeStamps">
+      <UniqueIdentifier>{8a3b9c5d-4e6f-7a8b-9c0d-1e2f3a4b5c6d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp">
@@ -30,6 +33,9 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Prop.cpp" />
     <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="Gameplay\TreeStamps\OakSnowTreeStamp.cpp">
+      <Filter>Gameplay\TreeStamps</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.hpp">
@@ -47,6 +53,9 @@
     <ClInclude Include="Entity.hpp" />
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="Prop.hpp" />
+    <ClInclude Include="Gameplay\TreeStamps\OakSnowTreeStamp.hpp">
+      <Filter>Gameplay\TreeStamps</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Run\Shaders\Default.hlsl" />
