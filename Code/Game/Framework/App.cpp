@@ -133,7 +133,7 @@ void App::Startup(char*)
 
     // Create and register ImGuiSubsystem (after renderer startup)
     ImGuiSubsystemConfig imguiConfig;
-    imguiConfig.renderContext = m_imguiRenderContext.get(); // ✅ 使用IImGuiRenderContext
+    imguiConfig.renderContext = m_imguiRenderContext;
     imguiConfig.targetWindow  = g_theWindow;
     auto imguiSubsystem       = std::make_unique<ImGuiSubsystem>(imguiConfig);
     GEngine->RegisterSubsystem(std::move(imguiSubsystem));
