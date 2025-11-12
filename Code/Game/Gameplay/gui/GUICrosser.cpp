@@ -29,9 +29,9 @@ Mat44 Crosser::GetModelToWorldTransform()
 
 void Crosser::Renderer()
 {
-    g_theRenderer->SetDepthMode(DepthMode::DISABLED);
+    g_theRenderer->SetDepthMode(depth_mode::DISABLED);
     g_theRenderer->SetModelConstants(GetModelToWorldTransform(), m_color);
-    g_theRenderer->SetBlendMode(BlendMode::ALPHA);
+    g_theRenderer->SetBlendMode(blend_mode::ALPHA);
     g_theRenderer->BindTexture(nullptr);
     g_theRenderer->DrawVertexArray(m_vertexes);
 }

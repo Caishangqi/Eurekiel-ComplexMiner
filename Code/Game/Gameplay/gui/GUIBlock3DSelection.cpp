@@ -34,9 +34,9 @@ void GUIBlock3DSelection::DrawHud()
     Mat44 matTranslation = Mat44::MakeTranslation3D(Vec3((float)m_blockPosition.x, (float)m_blockPosition.y, (float)m_blockPosition.z));
     matTranslation.Append(Mat44::MakeNonUniformScale3D(Vec3::ONE));
 
-    g_theRenderer->SetDepthMode(DepthMode::DISABLED);
+    g_theRenderer->SetDepthMode(depth_mode::DISABLED);
     g_theRenderer->SetModelConstants(matTranslation, Rgba8::WHITE);
-    g_theRenderer->SetBlendMode(BlendMode::ALPHA);
+    g_theRenderer->SetBlendMode(blend_mode::ALPHA);
     g_theRenderer->BindTexture(nullptr);
     g_theRenderer->DrawVertexArray(m_vertices);
 }

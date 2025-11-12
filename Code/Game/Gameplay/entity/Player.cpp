@@ -235,7 +235,7 @@ void Player::HandleMovementInput(float deltaSeconds)
 
 void Player::UpdateCameraSettings()
 {
-    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 2048.f);
+    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 512.f);
     m_camera->SetPosition(m_position);
     m_camera->SetOrientation(m_orientation);
 

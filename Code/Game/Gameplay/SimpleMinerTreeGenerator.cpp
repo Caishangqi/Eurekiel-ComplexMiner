@@ -1,4 +1,4 @@
-#include "SimpleMinerTreeGenerator.hpp"
+﻿#include "SimpleMinerTreeGenerator.hpp"
 #include "SimpleMinerGenerator.hpp"
 #include "TreeStamps/OakTreeStamp.hpp"
 #include "TreeStamps/OakSnowTreeStamp.hpp"

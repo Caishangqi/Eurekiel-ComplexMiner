@@ -1,4 +1,4 @@
-#include "SimpleMinerGenerator.hpp"
+﻿#include "SimpleMinerGenerator.hpp"
 #include "SimpleMinerTreeGenerator.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Core/Logger/LoggerAPI.hpp"
@@ -137,9 +137,20 @@ SimpleMinerGenerator::SimpleMinerGenerator(uint32_t worldSeed)
 
 bool SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t chunkY, uint32_t worldSeed)
 {
+    // ===== Phase 3: 前置状态检查 =====
     if (!chunk)
     {
         LogError("SimpleMinerGenerator", "GenerateChunk - null chunk provided");
+        return false;
+    }
+
+    // 检查 chunk 状态是否为 Generating
+    ChunkState currentState = chunk->GetState();
+    if (currentState != ChunkState::Generating)
+    {
+        LogWarn("SimpleMinerGenerator",
+                "Chunk (%d, %d) state is %s (not Generating), abort generation",
+                chunkX, chunkY, chunk->GetStateName());
         return false;
     }
 
@@ -172,8 +183,28 @@ bool SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
 
     for (int z = 0; z < Chunk::CHUNK_SIZE_Z; ++z)
     {
+        // ===== Phase 3: 外层循环状态验证（Z坐标） =====
+        // 频率：每次迭代（256次/chunk）
+        if (chunk->GetState() != ChunkState::Generating)
+        {
+            LogDebug("SimpleMinerGenerator",
+                     "Chunk (%d, %d) state changed during Z iteration %d, abort generation",
+                     chunkX, chunkY, z);
+            return false;
+        }
+
         for (int y = 0; y < Chunk::CHUNK_SIZE_Y; ++y)
         {
+            // ===== Phase 3: 中层循环状态验证（Y坐标） =====
+            // 频率：每10次迭代检查一次（性能优化）
+            if (y % 10 == 0 && chunk->GetState() != ChunkState::Generating)
+            {
+                LogDebug("SimpleMinerGenerator",
+                         "Chunk (%d, %d) state changed at Y=%d Z=%d, abort generation",
+                         chunkX, chunkY, y, z);
+                return false;
+            }
+
             for (int x = 0; x < Chunk::CHUNK_SIZE_X; ++x)
             {
                 int globalX = chunkX * Chunk::CHUNK_SIZE_X + x;
@@ -317,6 +348,17 @@ bool SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
                 // 注意：PV (Peaks/Valleys) 在当前实现中只用于 Biome 选择
                 // 如果需要更精细的峰谷控制，可以添加：density += pv * |c| * t
 
+                // ===== Phase 3: 内层循环关键位置状态验证 =====
+                // 这是崩溃发生点，在访问 chunk 之前必须验证状态
+                // 频率：每次迭代（16 * 16 * 256 = 65536次/chunk）
+                if (chunk->GetState() != ChunkState::Generating)
+                {
+                    LogDebug("SimpleMinerGenerator",
+                             "Chunk (%d, %d) state changed at critical point X=%d Y=%d Z=%d, abort generation",
+                             chunkX, chunkY, x, y, z);
+                    return false; // 立即返回，不继续访问 chunk
+                }
+
                 // Set block type based on density
                 if (density < 0.0f)
                 {
@@ -355,6 +397,15 @@ bool SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
         {
             for (int z = 0; z < SEA_LEVEL; ++z)
             {
+                // ===== Phase 3: 水填充循环状态验证 =====
+                if (chunk->GetState() != ChunkState::Generating)
+                {
+                    LogDebug("SimpleMinerGenerator",
+                             "Chunk (%d, %d) state changed during water fill at Z=%d, abort generation",
+                             chunkX, chunkY, z);
+                    return false;
+                }
+
                 for (int y = 0; y < Chunk::CHUNK_SIZE_Y; ++y)
                 {
                     for (int x = 0; x < Chunk::CHUNK_SIZE_X; ++x)

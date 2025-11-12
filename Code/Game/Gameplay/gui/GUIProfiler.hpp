@@ -47,5 +47,7 @@ private:
     int32_t m_numOfCompleteTaskFileIO  = 0;
 
 private:
-    Timer m_threadPoolUpdateTimer;
+    Timer                  m_threadPoolUpdateTimer;
+    Timer                  m_vertexCountUpdateTimer; // Timer to throttle expensive vertex statistics updates
+    static constexpr float VERTEX_UPDATE_INTERVAL = 0.5f; // Update every 0.5 seconds (2 Hz)
 };

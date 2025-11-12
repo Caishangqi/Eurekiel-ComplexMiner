@@ -74,8 +74,8 @@ Game::Game()
     using namespace enigma::voxel;
 
     auto generator     = std::make_unique<SimpleMinerGenerator>();
-    m_world            = std::make_unique<World>("world", 3568, std::move(generator));
-    int renderDistance = settings.GetInt("video.simulationDistance", 18);
+    m_world            = std::make_unique<World>("world", 6693073380, std::move(generator));
+    int renderDistance = settings.GetInt("video.simulationDistance", 24);
     m_world->SetChunkActivationRange(renderDistance);
     LogInfo(LogGame, "Render distance configured: %d chunks (using independent generators per chunk)", renderDistance);
 }
@@ -87,8 +87,15 @@ Game::~Game()
     {
         LogInfo(LogGame, "Saving world before game shutdown...");
         m_world->SaveWorld();
+
+        // ===== Phase 5: Graceful Shutdown =====
+        LogInfo(LogGame, "Initiating graceful shutdown...");
+        m_world->PrepareShutdown(); // Stop new tasks
+        m_world->WaitForPendingTasks(); // Wait for completion
+
+        LogInfo(LogGame, "Closing world...");
         m_world->CloseWorld();
-        m_world.reset(); // Explicitly release the world
+        m_world.reset(); // 3️⃣ Safe destruction
     }
 
     POINTER_SAFE_DELETE(m_player)
@@ -103,9 +110,9 @@ Game::~Game()
 void Game::Render() const
 {
     g_theRenderer->SetRasterizerMode(RasterizerMode::SOLID_CULL_BACK);
-    g_theRenderer->SetBlendMode(BlendMode::ALPHA);
+    g_theRenderer->SetBlendMode(blend_mode::ALPHA);
     g_theRenderer->SetSamplerMode(SamplerMode::POINT_CLAMP);
-    g_theRenderer->SetDepthMode(DepthMode::READ_WRITE_LESS_EQUAL);
+    g_theRenderer->SetDepthMode(depth_mode::READ_WRITE_LESS_EQUAL);
     if (!m_isInMainMenu)
     {
         m_player->Render();

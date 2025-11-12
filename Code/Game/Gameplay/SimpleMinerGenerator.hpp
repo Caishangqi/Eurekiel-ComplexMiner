@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Engine/Voxel/Generation/TerrainGenerator.hpp"
 #include "Engine/Voxel/NoiseGenerator/PerlinNoiseGenerator.hpp"
 #include "Engine/Voxel/Function/SplineDensityFunction.hpp"
