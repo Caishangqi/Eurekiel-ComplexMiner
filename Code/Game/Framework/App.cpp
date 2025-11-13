@@ -193,6 +193,7 @@ void App::Startup(char*)
     g_theInput->Startup();
 
     GEngine->Startup();
+    g_theLogger->SetGlobalLogLevel(LogLevel::ERROR_);
 
     DebugRenderSystemStartup(debugRenderConfig);
 

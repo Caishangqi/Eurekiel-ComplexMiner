@@ -154,8 +154,8 @@ void Player::HandleCameraModeSwitch()
 void Player::HandleMouseAndControllerInput(float deltaSeconds)
 {
     // Mouse input for camera orientation
-    Vec2 cursorDelta = g_theInput->GetCursorClientDelta();
-    m_orientation.m_yawDegrees += -cursorDelta.x * 0.125f;
+    Vec2 cursorDelta             = g_theInput->GetCursorClientDelta();
+    m_orientation.m_yawDegrees   += -cursorDelta.x * 0.125f;
     m_orientation.m_pitchDegrees += -cursorDelta.y * 0.125f;
 
     // Controller input for camera orientation
@@ -166,13 +166,13 @@ void Player::HandleMouseAndControllerInput(float deltaSeconds)
 
     if (rightStickMag > 0.f)
     {
-        m_orientation.m_yawDegrees += -(rightStickPos * speed * rightStickMag * 0.125f).x;
+        m_orientation.m_yawDegrees   += -(rightStickPos * speed * rightStickMag * 0.125f).x;
         m_orientation.m_pitchDegrees += -(rightStickPos * speed * rightStickMag * 0.125f).y;
     }
 
     // Controller trigger input for roll
-    float leftTrigger  = controller.GetLeftTrigger();
-    float rightTrigger = controller.GetRightTrigger();
+    float leftTrigger           = controller.GetLeftTrigger();
+    float rightTrigger          = controller.GetRightTrigger();
     m_orientation.m_rollDegrees += leftTrigger * 0.125f * deltaSeconds * speed;
     m_orientation.m_rollDegrees -= rightTrigger * 0.125f * deltaSeconds * speed;
 
@@ -202,8 +202,8 @@ void Player::HandleMovementInput(float deltaSeconds)
     // Controller movement
     Vec2  leftStickPos = controller.GetLeftStick().GetPosition();
     float leftStickMag = controller.GetLeftStick().GetMagnitude();
-    movementDelta += (leftStickPos * speed * leftStickMag * deltaSeconds).y * forward;
-    movementDelta += -(leftStickPos * speed * leftStickMag * deltaSeconds).x * left;
+    movementDelta      += (leftStickPos * speed * leftStickMag * deltaSeconds).y * forward;
+    movementDelta      += -(leftStickPos * speed * leftStickMag * deltaSeconds).x * left;
 
     // Keyboard movement
     if (g_theInput->IsKeyDown('W'))
@@ -235,7 +235,7 @@ void Player::HandleMovementInput(float deltaSeconds)
 
 void Player::UpdateCameraSettings()
 {
-    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 512.f);
+    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 1024.f);
     m_camera->SetPosition(m_position);
     m_camera->SetOrientation(m_orientation);
 

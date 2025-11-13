@@ -185,10 +185,8 @@ void Game::Update()
     DebugAddScreenText(cameraModeText, cameraModeTextBox, 14.0f, 0.0f, Rgba8::ORANGE, Rgba8::ORANGE, Vec2(1, 1.f));
 
     // Chunk management debug information (Assignment 02 requirement)
-    if (m_world && m_world->GetChunkManager())
+    if (m_world)
     {
-        auto* chunkManager = m_world->GetChunkManager().get();
-        UNUSED(chunkManager)
         // Calculate player's current chunk coordinates using proper constants
         int32_t playerChunkX = static_cast<int32_t>(std::floor(m_player->m_position.x / enigma::voxel::Chunk::CHUNK_SIZE_X));
         int32_t playerChunkY = static_cast<int32_t>(std::floor(m_player->m_position.y / enigma::voxel::Chunk::CHUNK_SIZE_Y));
@@ -197,7 +195,7 @@ void Game::Update()
         UNUSED(playerChunkY)
 
         // Display chunk management stats
-        //DebugAddMessage(Stringf("Chunk: (%d, %d) | Loaded: %zu chunks",playerChunkX, playerChunkY, chunkManager->GetLoadedChunkCount()), 1);
+        //DebugAddMessage(Stringf("Chunk: (%d, %d) | Loaded: %zu chunks",playerChunkX, playerChunkY, m_world->GetLoadedChunkCount()), 1);
 
         // Show activation/deactivation ranges
         //DebugAddMessage(Stringf("Activation Range: %d chunks",settings.GetInt("video.simulationDistance")), 2);
@@ -222,7 +220,6 @@ void Game::UpdateWorld()
         if (m_player)
         {
             m_world->SetPlayerPosition(m_player->m_position);
-            m_world->GetChunkManager()->SetPlayerPosition(m_player->m_position);
         }
 
         m_world->Update(m_clock->GetDeltaSeconds());

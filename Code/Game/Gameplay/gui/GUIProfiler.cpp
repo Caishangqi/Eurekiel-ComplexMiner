@@ -63,7 +63,7 @@ void GUIProfiler::Update(float deltaTime)
     m_numTransparentTriangles = 0;
 
     // Fetch information from chunk
-    const auto& loadedChunks = g_theGame->m_world->GetChunkManager()->GetLoadedChunks();
+    const auto& loadedChunks = g_theGame->m_world->GetLoadedChunks();
     m_numChunkLoaded         = (int)loadedChunks.size();
 
     for (auto& pair : loadedChunks)
@@ -71,11 +71,11 @@ void GUIProfiler::Update(float deltaTime)
         auto mesh = pair.second->GetMesh();
         if (mesh)
         {
-            m_numOpaqueVertices += mesh->GetOpaqueVertexCount();
-            m_numTransparentVertices += mesh->GetTransparentVertexCount();
-            m_numOpaqueIndices += mesh->GetOpaqueIndexCount();
-            m_numTransparentIndices += mesh->GetTransparentIndexCount();
-            m_numOpaqueTriangles += mesh->GetOpaqueTriangleCount();
+            m_numOpaqueVertices       += mesh->GetOpaqueVertexCount();
+            m_numTransparentVertices  += mesh->GetTransparentVertexCount();
+            m_numOpaqueIndices        += mesh->GetOpaqueIndexCount();
+            m_numTransparentIndices   += mesh->GetTransparentIndexCount();
+            m_numOpaqueTriangles      += mesh->GetOpaqueTriangleCount();
             m_numTransparentTriangles += mesh->GetTransparentTriangleCount();
         }
     }
