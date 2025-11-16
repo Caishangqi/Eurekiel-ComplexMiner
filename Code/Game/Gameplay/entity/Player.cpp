@@ -90,40 +90,42 @@ void Player::Render() const
 void Player::ProcessInput(float deltaTime)
 {
     UNUSED(deltaTime)
+
+    // [NEW] Block interaction - based on ray detection results
+    if (!m_guiBlockSelection)
+    {
+        return; // No ray detection GUI, skip interaction
+    }
+
+    // Get the current ray detection results
+    const enigma::voxel::VoxelRaycastResult3D& raycast = m_guiBlockSelection->GetCurrentRaycast();
+
+    // LMB - Dig Block
     if (g_theInput->WasMouseButtonJustPressed(KEYCODE_LEFT_MOUSE))
     {
-        // Place Current Block
-        if (m_guiPlayerInventory)
+        if (raycast.m_didImpact && m_game->m_world)
         {
-            auto block = m_guiPlayerInventory->GetCurrentBlock();
-            if (block != nullptr && block != enigma::voxel::AIR)
-            {
-                // Use std::floor to correctly convert floating point coordinates to square coordinates
-                int32_t blockX = static_cast<int32_t>(std::floor(m_position.x));
-                int32_t blockY = static_cast<int32_t>(std::floor(m_position.y));
-                int32_t blockZ = static_cast<int32_t>(std::floor(m_position.z));
-
-                auto topBlockZ     = m_game->m_world->GetTopBlockZ(enigma::voxel::BlockPos(blockX, blockY, blockZ));
-                auto blockPlacePos = enigma::voxel::BlockPos(blockX, blockY, topBlockZ + 1);
-                m_game->m_world->SetBlockState(blockPlacePos, block->GetDefaultState());
-            }
+            // Call World::DigBlock to mine the hit block
+            m_game->m_world->DigBlock(raycast.m_hitBlockIter);
         }
     }
 
+    // RMB - Place Block
     if (g_theInput->WasMouseButtonJustPressed(KEYCODE_RIGHT_MOUSE))
     {
-        // Destroy Block (replace with air)
-        if (m_game->m_world)
+        if (raycast.m_didImpact && m_guiPlayerInventory && m_game->m_world)
         {
-            if (enigma::voxel::AIR)
+            // Get the currently selected block type
+            auto selectedBlock = m_guiPlayerInventory->GetCurrentBlock();
+            if (selectedBlock)
             {
-                int32_t blockX = static_cast<int32_t>(std::floor(m_position.x));
-                int32_t blockY = static_cast<int32_t>(std::floor(m_position.y));
-                int32_t blockZ = static_cast<int32_t>(std::floor(m_position.z));
-
-                auto topBlockZ       = m_game->m_world->GetTopBlockZ(enigma::voxel::BlockPos(blockX, blockY, blockZ));
-                auto blockDestroyPos = enigma::voxel::BlockPos(blockX, blockY, topBlockZ);
-                m_game->m_world->SetBlockState(blockDestroyPos, enigma::voxel::AIR->GetDefaultState());
+                // Place on the opposite side of the hit surface (using GetPlacementIterator)
+                enigma::voxel::BlockIterator placeIter = raycast.GetPlacementIterator();
+                if (placeIter.IsValid())
+                {
+                    // Call World::PlaceBlock to place the block
+                    m_game->m_world->PlaceBlock(placeIter, selectedBlock->GetDefaultState());
+                }
             }
         }
     }
