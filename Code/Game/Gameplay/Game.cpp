@@ -28,11 +28,14 @@
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Voxel/Chunk/Chunk.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
+#include "Engine/Renderer/ConstantBuffer.hpp"
 #include "Engine/Voxel/Builtin/DefaultBlock.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Game/Framework/DummyTask.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
+#include "gui/GUIDebugLight.hpp"
 #include "gui/GUIProfiler.hpp"
+#include "Game/Framework/World/WorldConstant.hpp"
 
 
 Game::Game()
@@ -78,6 +81,10 @@ Game::Game()
     int renderDistance = settings.GetInt("video.simulationDistance", 24);
     m_world->SetChunkActivationRange(renderDistance);
     LogInfo(LogGame, "Render distance configured: %d chunks (using independent generators per chunk)", renderDistance);
+
+    /// Resource preload
+    m_worldShader = g_theRenderer->CreateOrGetShader(".enigma/data/Shaders/World");
+    m_worldCBO    = g_theRenderer->CreateConstantBuffer(sizeof(WorldConstant));
 }
 
 Game::~Game()
@@ -95,9 +102,10 @@ Game::~Game()
 
         LogInfo(LogGame, "Closing world...");
         m_world->CloseWorld();
-        m_world.reset(); // 3️⃣ Safe destruction
+        m_world.reset();
     }
 
+    POINTER_SAFE_DELETE(m_worldCBO)
     POINTER_SAFE_DELETE(m_player)
     POINTER_SAFE_DELETE(m_screenCamera)
     POINTER_SAFE_DELETE(m_worldCamera)
@@ -118,7 +126,9 @@ void Game::Render() const
         m_player->Render();
         RenderWorld();
         DebugRenderScreen(*g_theGame->m_screenCamera);
+        DebugRenderWorld(*g_theGame->m_player->m_camera);
     }
+
 
     //======================================================================= End of World Render =======================================================================
     // Second render screen camera
@@ -229,7 +239,37 @@ void Game::UpdateWorld()
 void Game::RenderWorld() const
 {
     if (m_world)
+    {
+        // [STEP 1] 准备WorldConstants数据
+        WorldConstant worldConstants = {};
+
+        // 相机位置(从player的camera获取)
+        Vec3 cameraPos                = m_player->m_camera->GetPosition();
+        worldConstants.CameraPosition = Vec4(cameraPos.x, cameraPos.y, cameraPos.z, 1.0f);
+
+        // 光照颜色(Phase 10会动态计算，当前使用默认值)
+        worldConstants.IndoorLightColor  = Vec4(1.0f, 230.0f / 255.0f, 204.0f / 255.0f, 1.0f);
+        worldConstants.OutdoorLightColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+        // [FIX] 天空颜色 - 使用中午浅蓝色 (200, 230, 255)，Phase 10会实现昼夜循环
+        worldConstants.SkyColor = Vec4(200.0f / 255.0f, 230.0f / 255.0f, 255.0f / 255.0f, 1.0f);
+
+        // [FIX] 迷雾距离 - 根据Assignment 05要求计算
+        // FogFar = activation_range - (2 * chunk_size)
+        // FogNear = half that
+        float activationRange          = 12.0f * 16.0f * 2; // 192格
+        worldConstants.FogFarDistance  = activationRange - (2.0f * 16.0f); // 192 - 32 = 160格
+        worldConstants.FogNearDistance = worldConstants.FogFarDistance * 0.9f; // 160 / 2 = 80格
+
+        // [STEP 2] 上传到GPU(必须在BindShader之前)
+        g_theRenderer->CopyCPUToGPU(&worldConstants, sizeof(WorldConstant), m_worldCBO);
+        g_theRenderer->BindConstantBuffer(4, m_worldCBO); // register(b4)
+
+        // [STEP 3] 绑定Shader和渲染
+        g_theRenderer->BindShader(m_worldShader);
         m_world->Render(g_theRenderer);
+        g_theRenderer->BindShader(nullptr);
+    }
 }
 
 
@@ -265,6 +305,15 @@ void Game::HandleKeyBoardEvent(float deltaTime)
         if (profiler)
             g_theGUI->RemoveFromViewPort(profiler);
         else g_theGUI->AddToViewPort(std::make_unique<GUIProfiler>());
+    }
+
+    // F3 + L Enable Light Debug GUI
+    if (/*g_theInput->WasKeyJustPressed(0x72) &&*/ g_theInput->WasKeyJustPressed('L'))
+    {
+        auto lightDebugger = g_theGUI->GetGUI(std::type_index(typeid(GUIDebugLight)));
+        if (lightDebugger)
+            g_theGUI->RemoveFromViewPort(lightDebugger);
+        else g_theGUI->AddToViewPort(std::make_unique<GUIDebugLight>());
     }
 
     if (g_theInput->WasKeyJustPressed(KEYCODE_ESC) || controller.WasButtonJustPressed(XBOX_BUTTON_BACK))

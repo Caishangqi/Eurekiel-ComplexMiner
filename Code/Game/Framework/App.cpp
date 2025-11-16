@@ -189,13 +189,12 @@ void App::Startup(char*)
 
     g_theWindow->Startup();
     g_theRenderer->Startup();
+    DebugRenderSystemStartup(debugRenderConfig);
     g_theDevConsole->Startup();
     g_theInput->Startup();
 
     GEngine->Startup();
     g_theLogger->SetGlobalLogLevel(LogLevel::ERROR_);
-
-    DebugRenderSystemStartup(debugRenderConfig);
 
     g_theGame = new Game();
 
@@ -427,7 +426,6 @@ void App::Render() const
     g_theGame->Render();
     g_theGUI->Render();
     g_theDevConsole->Render(m_consoleSpace);
-
     // Render ImGui (after all other rendering)
     g_theImGui->Render();
 }

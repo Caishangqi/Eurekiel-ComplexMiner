@@ -1,6 +1,10 @@
 ﻿#pragma once
 #include "../GameCommon.hpp"
 #include "Engine/Math/AABB2.hpp"
+#include "Game/Framework/World/WorldConstant.hpp"
+
+class Shader;
+class ConstantBuffer;
 
 namespace enigma::voxel
 {
@@ -36,6 +40,10 @@ public:
 public:
     std::unique_ptr<enigma::voxel::World> m_world;
     bool                                  m_enableChunkDebug = true;
+
+    Shader*         m_worldShader = nullptr;
+    ConstantBuffer* m_worldCBO    = nullptr;
+    WorldConstant   cb_world;
 
 public:
     bool m_isInMainMenu = true;
