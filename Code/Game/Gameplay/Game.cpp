@@ -10,6 +10,7 @@
 #include "Engine/Core/Logger/LoggerAPI.hpp"
 
 #include "Engine/Math/Vec2.hpp"
+#include "Engine/Math/SmoothNoise.hpp"
 #include "Engine/Core/Rgba8.hpp"
 #include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Input/XboxController.hpp"
@@ -235,6 +236,9 @@ void Game::UpdateWorld()
         }
 
         m_world->Update(m_clock->GetDeltaSeconds());
+
+        // [NEW] Phase 12: Unified lightning and glowstone update
+        UpdateLightningAndGlow();
     }
 }
 
@@ -306,14 +310,63 @@ Rgba8 Game::CalculateOutdoorLightColor(float timeOfDay) const
     return midnightLight;
 }
 
+void Game::UpdateLightning()
+{
+    // [FIX] Phase 12: Lightning effect - Assignment 05 compliant (instant flash)
+    float worldTime = m_worldClock->GetTotalSeconds();
+
+    // [STEP 1] Calculate Perlin noise (9 octaves, scale 200)
+    float lightningPerlin = Compute1dPerlinNoise(worldTime, 1.0f, 9, 0.5f, 2.0f, true, 0);
+
+    // [STEP 2] Range-map [0.6, 0.9] → [0, 1] and clamp
+    // Note: Perlin outputs [-1, 1], only values in [0.6, 0.9] trigger lightning
+    m_lightningStrength = RangeMap(lightningPerlin, 0.6f, 0.9f, 0.0f, 1.0f);
+    m_lightningStrength = GetClamped(m_lightningStrength, 0.0f, 1.0f);
+
+    // [STEP 3] Calculate base colors (from day/night cycle) - MUST recalculate each frame
+    float timeOfDay             = GetTimeOfDay();
+    Rgba8 baseSkyColor          = CalculateSkyColor(timeOfDay);
+    Rgba8 baseOutdoorLightColor = CalculateOutdoorLightColor(timeOfDay);
+
+    // [STEP 4] Lerp toward white based on lightningStrength (Assignment 05: instant flash)
+    // This is NOT a gradual transition - lightningStrength changes instantly with Perlin noise
+    Rgba8 whiteLightning(255, 255, 255);
+    m_skyColor          = Interpolate(baseSkyColor, whiteLightning, m_lightningStrength);
+    m_outdoorLightColor = Interpolate(baseOutdoorLightColor, whiteLightning, m_lightningStrength);
+}
+
+void Game::UpdateGlowstoneFlicker()
+{
+    // [NEW] Phase 12: Glowstone flicker effect (9 octaves, scale 500)
+    float worldTime  = m_worldClock->GetTotalSeconds();
+    float glowPerlin = Compute1dPerlinNoise(worldTime, 0.8f, 9, 0.5f, 2.0f, true, 0);
+
+    // Range-map [-1, 1] → [0.8, 1.0] (no clamp needed, glowPerlin already in range)
+    m_glowstoneFlickerStrength = RangeMap(glowPerlin, -1.0f, 1.0f, 0.8f, 1.0f);
+
+    // Apply flicker to indoor light color (255, 230, 204) using Rgba8 operator*
+    Rgba8 baseIndoorLight(255, 230, 204);
+    m_indoorLightColor = baseIndoorLight * m_glowstoneFlickerStrength;
+}
+
+void Game::UpdateLightningAndGlow()
+{
+    // [NEW] Phase 12: Unified update for lightning and glowstone effects
+
+    // Update lightning effect (affects sky and outdoor light)
+    UpdateLightning();
+
+    // Update glowstone flicker effect (affects indoor light)
+    UpdateGlowstoneFlicker();
+}
+
 void Game::RenderWorld() const
 {
     if (m_world)
     {
-        // [STEP 1] Calculate the current sky color and outdoor light color
-        float timeOfDay     = GetTimeOfDay();
-        m_skyColor          = CalculateSkyColor(timeOfDay);
-        m_outdoorLightColor = CalculateOutdoorLightColor(timeOfDay);
+        // [REMOVED] Phase 12: DO NOT recalculate colors here - they are set by UpdateLightning()
+        // m_skyColor and m_outdoorLightColor are already calculated in UpdateLightningAndGlow()
+        // which includes base day/night colors + lightning effect
 
         // Set to frame clear color (sky background)
         g_theRenderer->ClearScreen(m_skyColor);
@@ -326,8 +379,13 @@ void Game::RenderWorld() const
         worldConstants.CameraPosition = Vec4(cameraPos.x, cameraPos.y, cameraPos.z, 1.0f);
 
         //Light color
-        // Indoor light remains constant warm yellow
-        worldConstants.IndoorLightColor = Vec4(1.0f, 230.0f / 255.0f, 204.0f / 255.0f, 1.0f);
+        // [MODIFIED] Phase 12: Indoor light affected by glowstone flicker
+        worldConstants.IndoorLightColor = Vec4(
+            (float)m_indoorLightColor.r / 255.0f,
+            (float)m_indoorLightColor.g / 255.0f,
+            (float)m_indoorLightColor.b / 255.0f,
+            1.0f
+        );
 
         // Outdoor light dynamic interpolation based on TimeOfDay
         worldConstants.OutdoorLightColor = Vec4(

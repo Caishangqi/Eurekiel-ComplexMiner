@@ -37,6 +37,9 @@ public:
     float GetTimeOfDay() const; // Get world time (0.0=midnight, 0.25=dawn, 0.5=noon, 0.75=dusk)
     Rgba8 CalculateSkyColor(float timeOfDay) const; // Calculate sky color
     Rgba8 CalculateOutdoorLightColor(float timeOfDay) const; // Calculate outdoor light color
+    void  UpdateLightning(); // [NEW] Update lightning effect (Phase 12)
+    void  UpdateGlowstoneFlicker(); // [NEW] Update glowstone flicker effect (Phase 12)
+    void  UpdateLightningAndGlow(); // [NEW] Phase 12: Unified update for lightning and glowstone effects
 
     // Block Registration
     void RegisterBlocks();
@@ -54,6 +57,13 @@ public:
 
     // Outdoor light color interpolation system
     mutable Rgba8 m_outdoorLightColor = Rgba8(255, 255, 255); // Current outdoor light color (default pure white)
+
+    // Lightning effect system (Phase 12)
+    float m_lightningStrength = 0.0f; // [NEW] Lightning strength [0, 1]
+
+    // Indoor light color system (Phase 12 - Glowstone flicker)
+    Rgba8 m_indoorLightColor         = Rgba8(255, 230, 204); // [NEW] Indoor light color (warm yellow, affected by glowstone flicker)
+    float m_glowstoneFlickerStrength = 1.0f; // [NEW] Glowstone flicker strength [0.8, 1.0]
 
 public:
     bool m_isInMainMenu = true;
