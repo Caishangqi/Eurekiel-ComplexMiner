@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Entity.hpp"
+#include "../../Framework/Entity/Entity.hpp"
 #include "Engine/Core/EventSystem.hpp"
 #include "Game/GameCommon.hpp"
 

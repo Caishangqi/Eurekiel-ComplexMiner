@@ -5,7 +5,7 @@
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/IRenderer.hpp"
 #include "Game/GameCommon.hpp"
-#include "Game/Gameplay/entity/Player.hpp"
+#include "Game/Gameplay/Player/Player.hpp"
 
 Crosser::Crosser()
 {
@@ -48,6 +48,10 @@ GUICrosser::GUICrosser(Player* player) : GUI(), m_player(player)
 {
     m_crosser             = std::make_unique<Crosser>();
     m_crosser->m_position = m_player->m_position;
+}
+
+GUICrosser::~GUICrosser()
+{
 }
 
 void GUICrosser::Draw()

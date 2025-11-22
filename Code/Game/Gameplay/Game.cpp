@@ -2,8 +2,7 @@
 
 #include "../Framework/App.hpp"
 #include "../GameCommon.hpp"
-#include "entity/Player.hpp"
-#include "SimpleMinerGenerator.hpp"
+#include "Generator/SimpleMinerGenerator.hpp"
 #include "Engine/Core/Clock.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/FileUtils.hpp"
@@ -37,6 +36,7 @@
 #include "gui/GUIDebugLight.hpp"
 #include "gui/GUIProfiler.hpp"
 #include "Game/Framework/World/WorldConstant.hpp"
+#include "Player/Player.hpp"
 
 
 Game::Game()

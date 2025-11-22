@@ -26,13 +26,14 @@ struct Crosser
 
 class GUICrosser : public GUI
 {
+public:
     DECLARE_GUI(GUICrosser, "GUICrosser", 100)
 
-public:
     static bool Event_GameInstanceRemove(EventArgs& args);
 
 public:
     explicit GUICrosser(Player* player);
+    ~GUICrosser() override;
 
     void Draw() override;
     void DrawHud() override;
@@ -42,5 +43,5 @@ public:
 
 private:
     Player*                  m_player  = nullptr;
-    std::shared_ptr<Crosser> m_crosser = nullptr;
+    std::unique_ptr<Crosser> m_crosser = nullptr;
 };

@@ -8,7 +8,7 @@
 #include "Engine/Voxel/World/World.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/Gameplay/Game.hpp"
-#include "Game/Gameplay/entity/Player.hpp"
+#include "Game/Gameplay/Player/Player.hpp"
 
 GUIDebugLight::GUIDebugLight()
 {
@@ -33,9 +33,7 @@ void GUIDebugLight::DrawHud()
 
 void GUIDebugLight::Update(float deltaTime)
 {
-    if (m_timer->GetElapsedFraction() > 0.9f)
-    {
-    }
+    UNUSED(deltaTime)
     PopulateDebugBlocks();
     // [NEW] 处理 m_blocks：为每个方块显示光照信息
     for (const DebugBlockInfo& info : m_blocks)

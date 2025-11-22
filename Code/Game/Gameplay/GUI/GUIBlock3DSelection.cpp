@@ -12,7 +12,7 @@
 #include "Engine/Voxel/World/World.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/Gameplay/Game.hpp"
-#include "Game/Gameplay/entity/Player.hpp"
+#include "Game/Gameplay/Player/Player.hpp"
 
 bool GUIBlock3DSelection::Event_Player_Quit_World(EventArgs& args)
 {
@@ -143,7 +143,7 @@ void GUIBlock3DSelection::Update(float deltaTime)
     }
 
     // Call World::RaycastVsBlocks (maximum distance 8 meters)
-    m_currentRaycast = g_theGame->m_world->RaycastVsBlocks(rayStart, rayDir, 8.0f);
+    m_currentRaycast = g_theGame->m_world->RaycastVsBlocks(rayStart, rayDir, 16.0f);
 }
 
 void GUIBlock3DSelection::OnCreate()

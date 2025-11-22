@@ -160,26 +160,12 @@ bool SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
     // Establish world-space position and bounds of this chunk
     IntVec3 chunkPosition(chunkX * Chunk::CHUNK_SIZE_X, chunkY * Chunk::CHUNK_SIZE_Y, 0);
 
-    // Derive deterministic seeds for each noise channel
-    unsigned int terrainSeed     = effectiveSeed;
-    unsigned int humiditySeed    = effectiveSeed + 1;
-    unsigned int temperatureSeed = humiditySeed + 1;
-    unsigned int hillSeed        = temperatureSeed + 1;
-    unsigned int oceanSeed       = hillSeed + 1;
-    unsigned int dirtSeed        = oceanSeed + 1;
-
     // Allocate per-(x,y) maps
     const int          mapSize = Chunk::CHUNK_SIZE_X * Chunk::CHUNK_SIZE_Y;
     std::vector<int>   heightMapXY(mapSize);
     std::vector<int>   dirtDepthXY(mapSize);
     std::vector<float> humidityMapXY(mapSize);
     std::vector<float> temperatureMapXY(mapSize);
-
-    // Phase 1 Test: Raw and Biased Density Noise
-    // Based on course blog: Terrain Density and Bias (Oct 15, 2025)
-    // 使用chunk中心高度作为默认地形高度(海平面)
-    const float defaultTerrainHeight = static_cast<float>(Chunk::CHUNK_SIZE_Z) / 2.0f; // 64.0f
-    const float biasPerZ             = BIAS_PER_Z;
 
     for (int z = 0; z < Chunk::CHUNK_SIZE_Z; ++z)
     {
@@ -240,7 +226,7 @@ bool SimpleMinerGenerator::GenerateChunk(Chunk* chunk, int32_t chunkX, int32_t c
                 // 步骤3: 采样峰谷度 (PeaksValleys) [-1, 1]
                 // 2D Perlin噪声，决定该位置是山峰(+1)还是山谷(-1)
                 float peaksValleys = SamplePeaksValleys(globalX, globalY);
-
+                UNUSED(peaksValleys)
                 // 步骤4: 通过样条曲线计算地形参数
                 // h (Height Offset): 高度偏移量，控制地形基准高度的上下浮动
                 //    海洋区域(c=-1): h=-0.6，降低基准高度，形成海底

@@ -1,12 +1,12 @@
 ﻿#include "SimpleMinerTreeGenerator.hpp"
 #include "SimpleMinerGenerator.hpp"
-#include "TreeStamps/OakTreeStamp.hpp"
-#include "TreeStamps/OakSnowTreeStamp.hpp"
-#include "TreeStamps/BirchTreeStamp.hpp"
-#include "TreeStamps/SpruceTreeStamp.hpp"
-#include "TreeStamps/SpruceSnowTreeStamp.hpp"
-#include "TreeStamps/JungleTreeStamp.hpp"
-#include "TreeStamps/AcaciaTreeStamp.hpp"
+#include "../TreeStamps/OakTreeStamp.hpp"
+#include "../TreeStamps/OakSnowTreeStamp.hpp"
+#include "../TreeStamps/BirchTreeStamp.hpp"
+#include "../TreeStamps/SpruceTreeStamp.hpp"
+#include "../TreeStamps/SpruceSnowTreeStamp.hpp"
+#include "../TreeStamps/JungleTreeStamp.hpp"
+#include "../TreeStamps/AcaciaTreeStamp.hpp"
 #include "Engine/Core/Logger/LoggerAPI.hpp"
 #include "Engine/Voxel/Chunk/Chunk.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
@@ -81,10 +81,10 @@ std::string SimpleMinerTreeGenerator::SelectTreeType(const enigma::voxel::Biome*
         // T0 category: temperature < -0.45
         if (m_simpleMinerGenerator)
         {
-            auto biome = m_simpleMinerGenerator->GetBiomeAt(globalX, globalY);
-            if (biome)
+            auto biomeAt = m_simpleMinerGenerator->GetBiomeAt(globalX, globalY);
+            if (biomeAt)
             {
-                float temperature = biome->GetClimateSettings().temperature;
+                float temperature = biomeAt->GetClimateSettings().temperature;
                 if (temperature < -0.45f)
                 {
                     return "spruce_snow";
@@ -197,7 +197,10 @@ std::shared_ptr<TreeStamp> SimpleMinerTreeGenerator::GetOrCreateStamp(const std:
 
     // Convert size to lowercase for comparison
     std::string sizeLower = treeSize;
-    std::transform(sizeLower.begin(), sizeLower.end(), sizeLower.begin(), ::tolower);
+    std::transform(sizeLower.begin(), sizeLower.end(), sizeLower.begin(), [](unsigned char c) -> char
+    {
+        return static_cast<char>(std::tolower(c));
+    });
 
     // Create stamp based on type and size
     if (treeType == "oak")
@@ -317,6 +320,9 @@ std::string SimpleMinerTreeGenerator::DetermineTreeType(int globalX, int globalY
 
 bool SimpleMinerTreeGenerator::CanPlaceTree(int globalX, int globalY, int groundHeight, int treeHeight) const
 {
+    UNUSED(globalY)
+    UNUSED(globalY)
+    UNUSED(globalX)
     // Check if ground height is valid
     if (groundHeight < 0 || groundHeight >= Chunk::CHUNK_SIZE_Z - treeHeight)
     {
@@ -417,7 +423,7 @@ bool SimpleMinerTreeGenerator::PlaceTree(Chunk* chunk, int32_t chunkX, int32_t  
         if (existingBlock)
         {
             int existingBlockId = existingBlock->GetBlock()->GetNumericId();
-
+            UNUSED(existingBlockId)
             // Don't overwrite solid blocks (stone, ores, etc.)
             // Only overwrite air, grass, leaves, and other replaceable blocks
             // TODO: Use block properties to determine if block is replaceable
