@@ -361,12 +361,16 @@
         <Content Include="..\..\Run\.enigma\data\Shaders\Diffuse.hlsl" />
         <Content Include="..\..\Run\.enigma\data\Shaders\World.hlsl"/>
         <ClCompile Include="Framework\App.cpp"/>
+        <ClCompile Include="Framework\ControlConfigParser.cpp"/>
         <ClCompile Include="Framework\DummyTask.cpp"/>
         <ClCompile Include="Framework\Entity\Entity.cpp"/>
         <ClCompile Include="Framework\GUISubsystem.cpp"/>
+        <ClCompile Include="Framework\PhysicsConfigParser.cpp"/>
         <ClCompile Include="Framework\WindowConfigParser.cpp"/>
         <ClCompile Include="Gameplay\Generator\SimpleMinerGenerator.cpp"/>
         <ClCompile Include="Gameplay\Generator\SimpleMinerTreeGenerator.cpp"/>
+        <ClCompile Include="Gameplay\GUI\GUIPlayerStats.cpp"/>
+        <ClCompile Include="Gameplay\Player\GameCamera.cpp"/>
         <ClCompile Include="Gameplay\Player\Player.cpp"/>
         <ClCompile Include="Gameplay\Game.cpp" />
         <ClCompile Include="Gameplay\GUI\GUIBlock3DSelection.cpp"/>
@@ -423,14 +427,20 @@
     <ItemGroup>
         <ClInclude Include="EngineBuildPreferences.hpp" />
         <ClInclude Include="Framework\App.hpp" />
+        <ClInclude Include="Framework\ControlConfigParser.hpp"/>
         <ClInclude Include="Framework\Entity\Entity.hpp"/>
+        <ClInclude Include="Framework\Entity\PhysicsMode.hpp"/>
         <ClInclude Include="Framework\GUISubsystem.hpp"/>
         <ClInclude Include="Framework\DummyTask.hpp"/>
+        <ClInclude Include="Framework\PhysicsConfigParser.hpp"/>
         <ClInclude Include="Framework\WindowConfigParser.hpp"/>
         <ClInclude Include="Framework\World\WorldConstant.hpp"/>
         <ClInclude Include="GameCommon.hpp" />
         <ClInclude Include="Gameplay\Generator\SimpleMinerGenerator.hpp"/>
         <ClInclude Include="Gameplay\Generator\SimpleMinerTreeGenerator.hpp"/>
+        <ClInclude Include="Gameplay\GUI\GUIPlayerStats.hpp"/>
+        <ClInclude Include="Gameplay\Player\CameraMode.hpp"/>
+        <ClInclude Include="Gameplay\Player\GameCamera.hpp"/>
         <ClInclude Include="Gameplay\Player\Player.hpp"/>
         <ClInclude Include="Gameplay\Game.hpp" />
         <ClInclude Include="Gameplay\GUI\GUIBlock3DSelection.hpp"/>

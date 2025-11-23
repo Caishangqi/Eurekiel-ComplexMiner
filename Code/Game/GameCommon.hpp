@@ -24,13 +24,16 @@ class Game;
 class GUISubsystem;
 
 
-extern RandomNumberGenerator*               g_rng;
-extern App*                                 g_theApp;
-extern IRenderer*                           g_theRenderer;
-extern InputSystem*                         g_theInput;
-extern AudioSubsystem*                      g_theAudio;
-extern Game*                                g_theGame;
-extern GUISubsystem*                        g_theGUI;
+extern RandomNumberGenerator* g_rng;
+extern App*                   g_theApp;
+extern IRenderer*             g_theRenderer;
+extern InputSystem*           g_theInput;
+extern AudioSubsystem*        g_theAudio;
+extern Game*                  g_theGame;
+extern GUISubsystem*          g_theGUI;
+
+// Debug Flags
+extern bool g_debugPhysicsEnabled; // F3 key toggles physics debug rendering
 
 constexpr float WORLD_SIZE_X   = 200.f;
 constexpr float WORLD_SIZE_Y   = 100.f;
@@ -44,6 +47,14 @@ constexpr int MAX_ENTITY_PER_TYPE = 64;
 /// Grid
 constexpr int GRID_SIZE      = 50; // Half
 constexpr int GRID_UNIT_SIZE = 5;
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Physics Constants - Used by Entity physics system (12-corner collision, 4-base grounded detection)
+//------------------------------------------------------------------------------------------------------------------------------
+constexpr float g_playerWidth   = 0.6f; // Player collision box width (meters)
+constexpr float g_playerHeight  = 1.8f; // Player collision box height (meters)
+constexpr float g_cornerOffset  = 0.01f; // Corner inset offset to avoid floating point precision issues (meters)
+constexpr float g_raycastOffset = 0.01f; // Raycast offset to ensure accurate detection (meters)
 /// 
 
 /// Camera mode

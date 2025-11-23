@@ -22,3 +22,13 @@ audio:
   masterVolume: 1.0
   sfxVolume: 0.8
   musicVolume: 0.6
+physics:
+  gravityConstant: 9.8
+  groundedDragCoefficient: 8.0
+  airborneDragCoefficient: 0.5
+  groundedAcceleration: 10.0
+  airborneAcceleration: 2.0
+  speedLimit: 10.0
+  jumpImpulse: 5.0
+control:
+  mouseSensitivity: 0.075

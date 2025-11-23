@@ -66,14 +66,18 @@ void GUICrosser::DrawHud()
 void GUICrosser::Update(float deltaTime)
 {
     m_crosser->Update(deltaTime);
-    Vec3 iFwd, jLeft, kUp;
-    m_player->m_orientation.GetAsVectors_IFwd_JLeft_KUp(iFwd, jLeft, kUp);
-    float offsetDistance  = 2.f;
-    Vec3  debugAxisPos    = m_player->m_position + iFwd * offsetDistance;
-    m_crosser->m_position = debugAxisPos;
 
-    m_hudCamera->SetPosition(m_player->m_position);
-    m_hudCamera->SetOrientation(m_player->m_orientation);
+    // [UPDATED] 使用新的GameCamera系统获取引擎Camera
+    m_hudCamera = m_player->GetCamera()->GetEngineCamera();
+
+    // [IMPORTANT] 准星位置基于相机朝向,确保永远在屏幕中心
+    Vec3  cameraPosition    = m_hudCamera->GetPosition();
+    Vec3  cameraForward     = m_hudCamera->GetOrientation().GetForwardVector();
+    float offsetDistance    = 2.0f;
+    Vec3  crosshairWorldPos = cameraPosition + cameraForward * offsetDistance;
+
+    m_crosser->m_position    = crosshairWorldPos;
+    m_crosser->m_orientation = m_hudCamera->GetOrientation();
 }
 
 void GUICrosser::OnCreate()

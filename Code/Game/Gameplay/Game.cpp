@@ -35,6 +35,7 @@
 #include "Game/Framework/GUISubsystem.hpp"
 #include "gui/GUIDebugLight.hpp"
 #include "gui/GUIProfiler.hpp"
+#include "gui/GUIPlayerStats.hpp"
 #include "Game/Framework/World/WorldConstant.hpp"
 #include "Player/Player.hpp"
 

@@ -1,6 +1,8 @@
 ﻿#include "GUIBlock3DSelection.hpp"
 
 #include "Engine/Core/EngineCommon.hpp"
+#include "Game/Gameplay/Player/GameCamera.hpp"
+#include "Game/Gameplay/Player/CameraMode.hpp"
 #include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Math/Mat44.hpp"
@@ -112,37 +114,47 @@ void GUIBlock3DSelection::Update(float deltaTime)
     m_hudCamera->SetOrientation(m_player->m_orientation);
 
     // [STEP 1] R key switches lock state
-    if (g_theInput->WasKeyJustPressed('R'))
+    // [IMPORTANT] R key is disabled in SPECTATOR and SPECTATOR_XY modes (per Task 3.4 requirement)
+    CameraMode cameraMode      = m_player->GetCamera()->GetCameraMode();
+    bool       isSpectatorMode = (cameraMode == CameraMode::SPECTATOR || cameraMode == CameraMode::SPECTATOR_XY);
+
+    if (g_theInput->WasKeyJustPressed('R') && !isSpectatorMode)
     {
         m_isRaycastLocked = !m_isRaycastLocked;
 
         if (m_isRaycastLocked)
         {
-            // [GOOD] Lock: record the current camera status
-            m_lockedCameraPos = m_player->m_camera->GetPosition();
-            Vec3 forward, left, up;
-            m_player->m_camera->m_orientation.GetAsVectors_IFwd_JLeft_KUp(forward, left, up);
-            m_lockedCameraForward = forward;
+            // [GOOD] Lock: record the current player eye position and aim
+            m_lockedCameraPos     = m_player->m_position + m_player->m_eyeOffset;
+            m_lockedCameraForward = m_player->m_aim.GetForwardVector();
         }
         // No need to clear when unlocking, it will be overwritten the next time you lock
     }
 
     // [STEP 2] Perform ray detection
-    Vec3 rayStart = m_isRaycastLocked ? m_lockedCameraPos : m_player->m_camera->GetPosition();
+    Vec3 rayStart;
     Vec3 rayDir;
+
     if (m_isRaycastLocked)
     {
-        rayDir = m_lockedCameraForward;
+        // [LOCKED] Use locked position and direction
+        rayStart = m_lockedCameraPos;
+        rayDir   = m_lockedCameraForward;
+    }
+    else if (isSpectatorMode)
+    {
+        // [SPECTATOR/SPECTATOR_XY] Raycast based on camera position and orientation
+        rayStart = m_player->GetCamera()->GetPosition();
+        rayDir   = m_player->GetCamera()->GetOrientation().GetForwardVector();
     }
     else
     {
-        // [GOOD] Correctly obtain the camera front vector
-        Vec3 forward, left, up;
-        m_player->m_camera->m_orientation.GetAsVectors_IFwd_JLeft_KUp(forward, left, up);
-        rayDir = forward;
+        // [NORMAL] Raycast based on player eye position and aim
+        rayStart = m_player->m_position + m_player->m_eyeOffset;
+        rayDir   = m_player->m_aim.GetForwardVector();
     }
 
-    // Call World::RaycastVsBlocks (maximum distance 8 meters)
+    // Call World::RaycastVsBlocks (maximum distance 16 meters)
     m_currentRaycast = g_theGame->m_world->RaycastVsBlocks(rayStart, rayDir, 16.0f);
 }
 

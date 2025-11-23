@@ -1,4 +1,5 @@
 ﻿#include "Player.hpp"
+#include "GameCamera.hpp"
 
 #include "../../GameCommon.hpp"
 #include "Engine/Core/EngineCommon.hpp"
@@ -12,13 +13,16 @@
 
 #include "Engine/Renderer/DebugRenderSystem.hpp"
 #include "Engine/Voxel/World/World.hpp"
+#include "Engine/Core/Clock.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Game/Framework/App.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
+#include "Game/Framework/ControlConfigParser.hpp"
 #include "Game/Gameplay/Game.hpp"
 #include "Game/Gameplay/gui/GUIBlock3DSelection.hpp"
 #include "Game/Gameplay/gui/GUICrosser.hpp"
 #include "Game/Gameplay/gui/GUIPlayerInventory.hpp"
+#include "Game/Gameplay/gui/GUIPlayerStats.hpp"
 
 std::shared_ptr<GUIPlayerInventory>  Player::m_guiPlayerInventory = nullptr;
 std::shared_ptr<GUIBlock3DSelection> Player::m_guiBlockSelection  = nullptr;
@@ -31,6 +35,14 @@ bool Player::Event_Player_Join_World(EventArgs& args)
     {
         g_theGUI->AddToViewPort(std::make_shared<GUICrosser>(g_theGame->m_player));
     }
+
+    // [NEW] Add GUIPlayerStats to display camera mode, physics mode, and FPS
+    std::shared_ptr<GUI> guiPlayerStats = g_theGUI->GetGUI(std::type_index(typeid(GUIPlayerStats)));
+    if (!guiPlayerStats)
+    {
+        g_theGUI->AddToViewPort(std::make_unique<GUIPlayerStats>());
+    }
+
     std::shared_ptr<GUI> guiInventory = g_theGUI->GetGUI(std::type_index(typeid(GUIPlayerInventory)));
     if (!gui)
     {
@@ -55,9 +67,20 @@ bool Player::Event_Player_Quit_World(EventArgs& args)
 
 Player::Player(Game* owner) : Entity(owner)
 {
+    // [DEPRECATED] Legacy camera - will be removed after full migration
     m_camera         = new Camera();
     m_camera->m_mode = eMode_Perspective;
     m_camera->SetOrthographicView(Vec2(-1, -1), Vec2(1, 1));
+
+    // [NEW] Initialize m_aim from m_orientation (sync initial view direction)
+    m_aim = m_orientation;
+
+    // [NEW] Create GameCamera with unique_ptr - automatic lifetime management
+    m_gameCamera = std::make_unique<GameCamera>(this);
+
+    // [NEW] Load control parameters from settings.yml (Task 6.4)
+    ControlConfig controlConfig = ControlConfigParser::LoadFromYaml("Run/.enigma/settings.yml");
+    m_mouseSensitivity          = controlConfig.m_mouseSensitivity;
 
     // Event Subscribe
     g_theEventSystem->SubscribeEventCallbackFunction("Event.PlayerJoinWorld", Event_Player_Join_World);
@@ -66,24 +89,77 @@ Player::Player(Game* owner) : Entity(owner)
 
 Player::~Player()
 {
+    // [DEPRECATED] Legacy camera cleanup - will be removed after full migration
     POINTER_SAFE_DELETE(m_camera)
+
+    // [NEW] m_gameCamera uses unique_ptr - automatically cleaned up
+    // No need to explicitly delete
 }
 
 void Player::Update(float deltaSeconds)
 {
-    HandleCameraModeSwitch();
-    HandleMouseAndControllerInput(deltaSeconds);
-    HandleMovementInput(deltaSeconds);
-    UpdateCameraSettings();
+    // [REFACTORED] Phase 4.2 - New update flow:
+    // 1. UpdateInput: Handle all input (camera mode switch, physics mode switch, mouse, movement, jump)
+    // 2. Entity::Update: Physics simulation (calls UpdatePhysics and UpdateIsGrounded internally)
+    // 3. GameCamera::UpdateFromPlayer: Sync camera with player state
 
-    // Input
-    ProcessInput(deltaSeconds);
+    UpdateInput(deltaSeconds);
     Entity::Update(deltaSeconds);
+    m_gameCamera->UpdateFromPlayer(deltaSeconds);
+
+    // [LEGACY] Update old camera settings for transition period
+    UpdateCameraSettings();
+}
+
+void Player::UpdateInput(float deltaSeconds)
+{
+    // 1. Handle mode switches
+    HandleCameraModeSwitch(); // C key - cycle camera modes
+    HandlePhysicsModeSwitch(); // V key - cycle physics modes
+
+    // [NEW] F3 key - toggle physics debug rendering (Task 5.4)
+    if (g_theInput->WasKeyJustPressed(KEYCODE_F3))
+    {
+        g_debugPhysicsEnabled = !g_debugPhysicsEnabled;
+    }
+
+    // 2. Handle mouse/controller input for view direction
+    HandleMouseAndControllerInput(deltaSeconds);
+
+    // 3. Handle movement based on camera mode
+    CameraMode cameraMode = m_gameCamera->GetCameraMode();
+
+    if (cameraMode == CameraMode::SPECTATOR || cameraMode == CameraMode::SPECTATOR_XY)
+    {
+        // Spectator modes: Camera handles its own movement in GameCamera::Update*()
+        // Player movement is disabled - player is "dispossessed"
+        // GameCamera::Update() is called from UpdateFromPlayer() for these modes
+        m_gameCamera->Update(deltaSeconds);
+    }
+    else if (cameraMode == CameraMode::INDEPENDENT)
+    {
+        // Independent mode: Input controls player, camera stays fixed
+        HandleMovementInput(deltaSeconds);
+        HandleJumpInput();
+    }
+    else
+    {
+        // FIRST_PERSON, OVER_SHOULDER: Standard player control
+        HandleMovementInput(deltaSeconds);
+        HandleJumpInput();
+    }
+
+    // 4. Process block interaction input (dig, place)
+    ProcessInput(deltaSeconds);
 }
 
 void Player::Render() const
 {
     g_theRenderer->BeginCamera(*m_camera);
+
+    // [NEW] Task 5.4 - Render physics debug visualization
+    RenderDebugPhysics();
+
     g_theRenderer->EndCamera(*m_camera);
 }
 
@@ -133,34 +209,48 @@ void Player::ProcessInput(float deltaTime)
 
 void Player::HandleCameraModeSwitch()
 {
+    // C key - cycle through camera modes via GameCamera
     if (g_theInput->WasKeyJustPressed('C'))
     {
-        switch (m_cameraMode)
-        {
-        case CameraMode::SPECTATOR_FULL:
-            m_cameraMode = CameraMode::SPECTATOR_XY;
-            break;
-        case CameraMode::SPECTATOR_XY:
-            m_cameraMode = CameraMode::THIRD_PERSON;
-            break;
-        case CameraMode::THIRD_PERSON:
-            m_cameraMode = CameraMode::FIRST_PERSON;
-            break;
-        case CameraMode::FIRST_PERSON:
-            m_cameraMode = CameraMode::SPECTATOR_FULL;
-            break;
-        }
+        m_gameCamera->NextCameraMode();
+
+        // [LEGACY] Keep m_cameraMode in sync for backward compatibility
+        // This will be removed after full migration
+        m_cameraMode = m_gameCamera->GetCameraMode();
+    }
+}
+
+void Player::HandlePhysicsModeSwitch()
+{
+    // V key - cycle through physics modes (WALKING -> FLYING -> NOCLIP -> WALKING)
+    if (g_theInput->WasKeyJustPressed('V'))
+    {
+        NextPhysicsMode();
+    }
+}
+
+void Player::HandleJumpInput()
+{
+    // Space key - jump (only in WALKING mode when grounded)
+    if (m_physicsMode == PhysicsMode::WALKING &&
+        m_isGrounded &&
+        g_theInput->WasKeyJustPressed(KEYCODE_SPACE))
+    {
+        // Apply jump impulse to vertical velocity
+        m_velocity.z += m_jumpImpulse;
     }
 }
 
 void Player::HandleMouseAndControllerInput(float deltaSeconds)
 {
-    // Mouse input for camera orientation
-    Vec2 cursorDelta             = g_theInput->GetCursorClientDelta();
-    m_orientation.m_yawDegrees   += -cursorDelta.x * 0.125f;
-    m_orientation.m_pitchDegrees += -cursorDelta.y * 0.125f;
+    // [REFACTORED] Phase 4.4 - Route mouse input through GameCamera
+    // GameCamera::ProcessMouseInput handles updating m_aim (player modes) or camera orientation (spectator modes)
 
-    // Controller input for camera orientation
+    // Mouse input
+    Vec2 cursorDelta = g_theInput->GetCursorClientDelta();
+    m_gameCamera->ProcessMouseInput(-cursorDelta.x, -cursorDelta.y);
+
+    // Controller right stick input for view direction
     const XboxController& controller    = g_theInput->GetController(0);
     Vec2                  rightStickPos = controller.GetRightStick().GetPosition();
     float                 rightStickMag = controller.GetRightStick().GetMagnitude();
@@ -168,71 +258,87 @@ void Player::HandleMouseAndControllerInput(float deltaSeconds)
 
     if (rightStickMag > 0.f)
     {
-        m_orientation.m_yawDegrees   += -(rightStickPos * speed * rightStickMag * 0.125f).x;
-        m_orientation.m_pitchDegrees += -(rightStickPos * speed * rightStickMag * 0.125f).y;
+        float controllerYaw   = -(rightStickPos * speed * rightStickMag).x;
+        float controllerPitch = -(rightStickPos * speed * rightStickMag).y;
+        m_gameCamera->ProcessMouseInput(controllerYaw, controllerPitch);
     }
 
-    // Controller trigger input for roll
+    // Controller trigger input for roll (legacy - only affects m_orientation)
     float leftTrigger           = controller.GetLeftTrigger();
     float rightTrigger          = controller.GetRightTrigger();
     m_orientation.m_rollDegrees += leftTrigger * 0.125f * deltaSeconds * speed;
     m_orientation.m_rollDegrees -= rightTrigger * 0.125f * deltaSeconds * speed;
 
-    // Clamp orientation values
-    m_orientation.m_pitchDegrees = GetClamped(m_orientation.m_pitchDegrees, -85.f, 85.f);
-    m_orientation.m_rollDegrees  = GetClamped(m_orientation.m_rollDegrees, -45.f, 45.f);
+    // Clamp roll
+    m_orientation.m_rollDegrees = GetClamped(m_orientation.m_rollDegrees, -45.f, 45.f);
 }
 
 void Player::HandleMovementInput(float deltaSeconds)
 {
-    const XboxController& controller = g_theInput->GetController(0);
-    float                 speed      = 4.0f;
+    // [REFACTORED] Phase 4.3 - Movement based on m_aim, sets acceleration for physics system
+    UNUSED(deltaSeconds)
 
-    // Sprint speed modifier
+    // Build local movement input vector
+    Vec3 movementInput = Vec3::ZERO;
+    if (g_theInput->IsKeyDown('W')) movementInput.x += 1.0f; // Forward
+    if (g_theInput->IsKeyDown('S')) movementInput.x -= 1.0f; // Backward
+    if (g_theInput->IsKeyDown('A')) movementInput.y += 1.0f; // Left
+    if (g_theInput->IsKeyDown('D')) movementInput.y -= 1.0f; // Right
+
+    // Controller left stick input
+    const XboxController& controller   = g_theInput->GetController(0);
+    Vec2                  leftStickPos = controller.GetLeftStick().GetPosition();
+    float                 leftStickMag = controller.GetLeftStick().GetMagnitude();
+    if (leftStickMag > 0.0f)
+    {
+        movementInput.x += leftStickPos.y * leftStickMag; // Y axis is forward/back
+        movementInput.y -= leftStickPos.x * leftStickMag; // X axis is left/right (inverted)
+    }
+
+    // Normalize to prevent diagonal speed boost
+    if (movementInput.GetLengthSquared() > 0.0f)
+    {
+        movementInput = movementInput.GetNormalized();
+    }
+
+    // Transform local movement to world space using m_aim
+    Vec3 forward, left, up;
+    m_aim.GetAsVectors_IFwd_JLeft_KUp(forward, left, up);
+    Vec3 worldMovement = forward * movementInput.x + left * movementInput.y;
+
+    // WALKING mode: restrict movement to XY plane
+    if (m_physicsMode == PhysicsMode::WALKING)
+    {
+        worldMovement.z = 0.0f;
+        if (worldMovement.GetLengthSquared() > 0.0f)
+        {
+            worldMovement = worldMovement.GetNormalized();
+        }
+    }
+
+    // Q/E vertical movement (only in FLYING/NOCLIP modes, or non-first-person camera)
+    CameraMode cameraMode = m_gameCamera->GetCameraMode();
+    if (m_physicsMode != PhysicsMode::WALKING || cameraMode != CameraMode::FIRST_PERSON)
+    {
+        if (g_theInput->IsKeyDown('Q') || controller.IsButtonDown(XBOX_BUTTON_LS))
+            worldMovement.z += 1.0f; // Up
+        if (g_theInput->IsKeyDown('E') || controller.IsButtonDown(XBOX_BUTTON_RS))
+            worldMovement.z -= 1.0f; // Down
+    }
+
+    // Calculate sprint modifier
+    float sprintMod = 1.0f;
     if (g_theInput->IsKeyDown(KEYCODE_LEFT_SHIFT) || controller.IsButtonDown(XBOX_BUTTON_A))
     {
-        speed *= 20.f;
+        sprintMod = 20.0f;
     }
 
-    // Get movement vectors
-    Vec3 forward, left, up;
-    m_orientation.GetAsVectors_IFwd_JLeft_KUp(forward, left, up);
+    // Calculate acceleration based on grounded state
+    float dragCoeff     = m_isGrounded ? m_groundedDragCoefficient : m_airborneDragCoefficient;
+    float accelConstant = m_isGrounded ? m_groundedAcceleration : m_airborneAcceleration;
 
-    // Movement input processing
-    Vec3 movementDelta = Vec3::ZERO;
-
-    // Controller movement
-    Vec2  leftStickPos = controller.GetLeftStick().GetPosition();
-    float leftStickMag = controller.GetLeftStick().GetMagnitude();
-    movementDelta      += (leftStickPos * speed * leftStickMag * deltaSeconds).y * forward;
-    movementDelta      += -(leftStickPos * speed * leftStickMag * deltaSeconds).x * left;
-
-    // Keyboard movement
-    if (g_theInput->IsKeyDown('W'))
-        movementDelta += forward * speed * deltaSeconds;
-    if (g_theInput->IsKeyDown('S'))
-        movementDelta -= forward * speed * deltaSeconds;
-    if (g_theInput->IsKeyDown('A'))
-        movementDelta += left * speed * deltaSeconds;
-    if (g_theInput->IsKeyDown('D'))
-        movementDelta -= left * speed * deltaSeconds;
-
-    // Vertical movement - camera mode dependent
-    if (m_cameraMode == CameraMode::SPECTATOR_FULL)
-    {
-        if (g_theInput->IsKeyDown('Q') || controller.IsButtonDown(XBOX_BUTTON_RS))
-            movementDelta.z -= deltaSeconds * speed;
-        if (g_theInput->IsKeyDown('E') || controller.IsButtonDown(XBOX_BUTTON_LS))
-            movementDelta.z += deltaSeconds * speed;
-    }
-    else if (m_cameraMode == CameraMode::SPECTATOR_XY)
-    {
-        // In SpectatorXY mode, restrict movement to XY plane only
-        movementDelta.z = 0.0f;
-    }
-
-    // Apply movement
-    m_position += movementDelta;
+    // Apply acceleration to physics system (will be integrated in Entity::UpdatePhysics)
+    m_acceleration += worldMovement * sprintMod * dragCoeff * accelConstant;
 }
 
 void Player::UpdateCameraSettings()
@@ -245,4 +351,73 @@ void Player::UpdateCameraSettings()
     Mat44 ndcMatrix;
     ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
     m_camera->SetCameraToRenderTransform(ndcMatrix);
+}
+
+void Player::RenderDebugPhysics() const
+{
+    // Early exit if debug rendering is disabled
+    if (!g_debugPhysicsEnabled)
+        return;
+
+    // [IMPORTANT] Only render in non-first-person modes to avoid obstructing view
+    if (m_gameCamera->GetCameraMode() == CameraMode::FIRST_PERSON)
+        return;
+
+    // 1. Draw player bounding box (cyan, X-Ray mode)
+    AABB3 worldBounds  = m_physicsBounds;
+    worldBounds.m_mins += m_position;
+    worldBounds.m_maxs += m_position;
+    DebugDrawWorldAABB3(worldBounds, Rgba8::CYAN, DebugDrawMode::X_RAY);
+
+    // 2. Draw 12 collision detection rays (only when moving)
+    if (m_velocity.GetLengthSquared() > 0.0001f)
+    {
+        Vec3 corners[12];
+        BuildCornerPoints(corners);
+
+        Vec3  rayDirection = m_velocity.GetNormalized();
+        float deltaTime    = Clock::GetMaster().GetDeltaTime();
+        float rayDistance  = m_velocity.GetLength() * deltaTime + g_raycastOffset;
+
+        for (int i = 0; i < 12; ++i)
+        {
+            Vec3 rayStart = m_position + corners[i];
+            Vec3 rayEnd   = rayStart + rayDirection * rayDistance;
+            DebugDrawWorldLine(rayStart, rayEnd, Rgba8::CYAN);
+        }
+    }
+
+    // 3. Draw 4 ground detection rays (green if grounded, red if not)
+    Vec3  baseCorners[4];
+    float halfWidth = g_playerWidth * 0.5f - g_cornerOffset;
+
+    baseCorners[0] = Vec3(-halfWidth, -halfWidth, g_raycastOffset);
+    baseCorners[1] = Vec3(+halfWidth, -halfWidth, g_raycastOffset);
+    baseCorners[2] = Vec3(+halfWidth, +halfWidth, g_raycastOffset);
+    baseCorners[3] = Vec3(-halfWidth, +halfWidth, g_raycastOffset);
+
+    Rgba8 groundRayColor = m_isGrounded ? Rgba8::GREEN : Rgba8::RED;
+    for (int i = 0; i < 4; ++i)
+    {
+        Vec3 rayStart = m_position + baseCorners[i];
+        Vec3 rayEnd   = rayStart + Vec3(0.0f, 0.0f, -2.0f * g_raycastOffset);
+        DebugDrawWorldLine(rayStart, rayEnd, groundRayColor);
+    }
+
+    // 4. Draw world coordinate system in spectator modes
+    CameraMode cameraMode = m_gameCamera->GetCameraMode();
+    if (cameraMode == CameraMode::SPECTATOR ||
+        cameraMode == CameraMode::SPECTATOR_XY ||
+        cameraMode == CameraMode::INDEPENDENT)
+    {
+        Vec3  origin     = m_position;
+        float axisLength = 2.0f;
+
+        // X axis (red)
+        DebugDrawWorldLine(origin, origin + Vec3(axisLength, 0, 0), Rgba8::RED);
+        // Y axis (green)
+        DebugDrawWorldLine(origin, origin + Vec3(0, axisLength, 0), Rgba8::GREEN);
+        // Z axis (blue)
+        DebugDrawWorldLine(origin, origin + Vec3(0, 0, axisLength), Rgba8::BLUE);
+    }
 }
