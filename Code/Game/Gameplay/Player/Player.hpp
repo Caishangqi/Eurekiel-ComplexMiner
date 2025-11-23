@@ -21,9 +21,6 @@ public:
     Player(Game* owner);
     ~Player() override;
 
-    // [DEPRECATED] Legacy camera pointer - will be removed after full migration
-    Camera* m_camera = nullptr;
-
     // [NEW] Independent aim orientation (separate from Entity::m_orientation)
     // m_aim controls view direction, m_orientation controls physics/movement direction
     EulerAngles m_aim;
@@ -57,7 +54,6 @@ private:
     void HandleMouseAndControllerInput(float deltaSeconds); // Mouse/controller view control
     void HandleMovementInput(float deltaSeconds); // WASD movement
     void HandleJumpInput(); // Space jump (WALKING mode only)
-    void UpdateCameraSettings(); // Legacy camera sync
 
 private:
     static std::shared_ptr<GUIPlayerInventory>  m_guiPlayerInventory;

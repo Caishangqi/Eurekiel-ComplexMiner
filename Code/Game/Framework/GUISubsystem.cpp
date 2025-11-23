@@ -1,8 +1,10 @@
 ﻿#include "GUISubsystem.hpp"
 
+#include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/Logger/LoggerAPI.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/IRenderer.hpp"
+#include "Engine/Window/Window.hpp"
 #include "Game/GameCommon.hpp"
 
 GUISubsystem::GUISubsystem(GUIConfig& config) : m_config(config)
@@ -46,7 +48,7 @@ void GUISubsystem::Startup()
     // [FIX] 使用 std::make_shared 而不是 std::make_unique，匹配成员变量类型
     m_hudCamera         = std::make_shared<Camera>();
     m_hudCamera->m_mode = eMode_Perspective;
-    m_hudCamera->SetPerspectiveView(2.0f, 60.f, 0.1f, 100.f);
+    m_hudCamera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 1000.f);
     Mat44 ndcMatrix;
     ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
     m_hudCamera->SetCameraToRenderTransform(ndcMatrix);

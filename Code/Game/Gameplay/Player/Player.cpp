@@ -68,11 +68,6 @@ bool Player::Event_Player_Quit_World(EventArgs& args)
 
 Player::Player(Game* owner) : Entity(owner)
 {
-    // [DEPRECATED] Legacy camera - will be removed after full migration
-    m_camera         = new Camera();
-    m_camera->m_mode = eMode_Perspective;
-    m_camera->SetOrthographicView(Vec2(-1, -1), Vec2(1, 1));
-
     // [NEW] Initialize m_aim from m_orientation (sync initial view direction)
     m_aim = m_orientation;
 
@@ -90,9 +85,6 @@ Player::Player(Game* owner) : Entity(owner)
 
 Player::~Player()
 {
-    // [DEPRECATED] Legacy camera cleanup - will be removed after full migration
-    POINTER_SAFE_DELETE(m_camera)
-
     // [NEW] m_gameCamera uses unique_ptr - automatically cleaned up
     // No need to explicitly delete
 }
@@ -108,8 +100,13 @@ void Player::Update(float deltaSeconds)
     Entity::Update(deltaSeconds);
     m_gameCamera->UpdateFromPlayer(deltaSeconds);
 
-    // [LEGACY] Update old camera settings for transition period
-    UpdateCameraSettings();
+    // [DEBUG] Log camera state
+    Vec3        camPos    = m_gameCamera->GetEngineCamera()->GetPosition();
+    EulerAngles camOrient = m_gameCamera->GetEngineCamera()->GetOrientation();
+    DebuggerPrintf("[DEBUG] Camera Pos: (%.2f, %.2f, %.2f) Orient: (%.2f, %.2f, %.2f)\n",
+                   camPos.x, camPos.y, camPos.z, camOrient.m_yawDegrees, camOrient.m_pitchDegrees, camOrient.m_rollDegrees);
+    DebuggerPrintf("[DEBUG] Player Pos: (%.2f, %.2f, %.2f) Aim: (%.2f, %.2f, %.2f)\n",
+                   m_position.x, m_position.y, m_position.z, m_aim.m_yawDegrees, m_aim.m_pitchDegrees, m_aim.m_rollDegrees);
 }
 
 void Player::UpdateInput(float deltaSeconds)
@@ -156,12 +153,15 @@ void Player::UpdateInput(float deltaSeconds)
 
 void Player::Render() const
 {
-    g_theRenderer->BeginCamera(*m_camera);
+    g_theRenderer->BeginCamera(*m_gameCamera->GetEngineCamera());
 
-    // [NEW] Task 5.4 - Render physics debug visualization
-    RenderDebugPhysics();
+    // [FIX] Ensure camera context is always properly closed
+    if (g_debugPhysicsEnabled && m_gameCamera->GetCameraMode() != CameraMode::FIRST_PERSON)
+    {
+        RenderDebugPhysics();
+    }
 
-    g_theRenderer->EndCamera(*m_camera);
+    g_theRenderer->EndCamera(*m_gameCamera->GetEngineCamera());
 }
 
 void Player::ProcessInput(float deltaTime)
@@ -342,17 +342,6 @@ void Player::HandleMovementInput(float deltaSeconds)
     m_acceleration += worldMovement * sprintMod * dragCoeff * accelConstant;
 }
 
-void Player::UpdateCameraSettings()
-{
-    m_camera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), 60.f, 0.1f, 1024.f);
-    m_camera->SetPosition(m_position);
-    m_camera->SetOrientation(m_orientation);
-
-    // Set camera transform matrix
-    Mat44 ndcMatrix;
-    ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
-    m_camera->SetCameraToRenderTransform(ndcMatrix);
-}
 
 void Player::RenderDebugPhysics() const
 {

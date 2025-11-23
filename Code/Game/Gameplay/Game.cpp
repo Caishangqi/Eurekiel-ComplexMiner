@@ -25,6 +25,7 @@
 #include "Engine/Core/Yaml.hpp"
 #include "Engine/Core/LogCategory/PredefinedCategories.hpp"
 #include "Engine/Core/Schedule/ScheduleSubsystem.hpp"
+#include "Engine/Graphic/Core/RenderState.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Voxel/Chunk/Chunk.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
@@ -131,7 +132,7 @@ void Game::Render() const
         m_player->Render();
         RenderWorld();
         DebugRenderScreen(*g_theGame->m_screenCamera);
-        DebugRenderWorld(*g_theGame->m_player->m_camera);
+        DebugRenderWorld(*g_theGame->m_player->GetCamera()->GetEngineCamera());
     }
 
 
@@ -166,14 +167,14 @@ void Game::Update()
         g_theInput->SetCursorMode(CursorMode::POINTER);
     }
 
-    if (m_isGameStart)
+    if (!m_isInMainMenu)
     {
         UpdateWorld();
+        /// Player
+        m_player->Update(Clock::GetSystemClock().GetDeltaSeconds());
+        ///
     }
 
-    /// Player
-    m_player->Update(Clock::GetSystemClock().GetDeltaSeconds());
-    ///
 
     /// Cube
     float brightnessFactor = CycleValue(m_clock->GetTotalSeconds(), 1.f);
@@ -377,7 +378,7 @@ void Game::RenderWorld() const
         WorldConstant worldConstants = {};
 
         //Camera position (obtained from player's camera)
-        Vec3 cameraPos                = m_player->m_camera->GetPosition();
+        Vec3 cameraPos                = m_player->GetCamera()->GetEngineCamera()->GetPosition();
         worldConstants.CameraPosition = Vec4(cameraPos.x, cameraPos.y, cameraPos.z, 1.0f);
 
         //Light color
@@ -411,6 +412,9 @@ void Game::RenderWorld() const
         float activationRange          = 12.0f * 16.0f * 2; // 384格 (12区块 * 16格/区块 * 2)
         worldConstants.FogFarDistance  = activationRange - (2.0f * 16.0f); // 384 - 32 = 352格
         worldConstants.FogNearDistance = worldConstants.FogFarDistance * 0.9f; // 352 * 0.9 = 316.8格
+
+        g_theRenderer->SetBlendMode(blend_mode::OPAQUE);
+        g_theRenderer->SetDepthMode(depth_mode::READ_WRITE_LESS_EQUAL);
 
         // [STEP 3] Upload to GPU (must be before BindShader)
         g_theRenderer->CopyCPUToGPU(&worldConstants, sizeof(WorldConstant), m_worldCBO);

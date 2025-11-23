@@ -6,7 +6,9 @@
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Math/Mat44.hpp"
 #include "Engine/Math/MathUtils.hpp"
+#include "Engine/Window/Window.hpp"
 #include "Game/GameCommon.hpp"
+#include "Game/Framework/App.hpp"
 
 //-----------------------------------------------------------------------------------------------
 // Constructor - Creates GameCamera with owned engine Camera via std::make_unique
@@ -26,18 +28,23 @@ GameCamera::GameCamera(Player* player)
     ASSERT_OR_DIE(m_engineCamera != nullptr, "GameCamera: failed to create engine Camera");
 
     // Configure engine camera for perspective rendering
-    // SetPerspectiveView(aspect, fov, near, far)
-    constexpr float CAMERA_ASPECT_RATIO = 16.0f / 9.0f; // Widescreen aspect ratio
-    constexpr float CAMERA_FOV_DEGREES  = 60.0f; // Field of view in degrees
-    constexpr float CAMERA_NEAR_CLIP    = 0.01f; // Near clipping plane distance
-    constexpr float CAMERA_FAR_CLIP     = 10000.0f; // Far clipping plane distance
-    m_engineCamera->SetPerspectiveView(CAMERA_ASPECT_RATIO, CAMERA_FOV_DEGREES, CAMERA_NEAR_CLIP, CAMERA_FAR_CLIP);
+    constexpr float CAMERA_FOV_DEGREES = 60.0f;
+    constexpr float CAMERA_NEAR_CLIP   = 0.01f;
+    constexpr float CAMERA_FAR_CLIP    = 10000.0f;
+
+    m_engineCamera->m_mode = eMode_Perspective;
+    m_engineCamera->SetPerspectiveView(g_theWindow->GetClientAspectRatio(), CAMERA_FOV_DEGREES, CAMERA_NEAR_CLIP, CAMERA_FAR_CLIP);
+
+    Mat44 ndcMatrix;
+    ndcMatrix.SetIJK3D(Vec3(0, 0, 1), Vec3(-1, 0, 0), Vec3(0, 1, 0));
+    m_engineCamera->SetCameraToRenderTransform(ndcMatrix);
 
     // Initialize position from player (will be updated on first frame)
     if (m_player)
     {
         m_position    = m_player->m_position + m_player->m_eyeOffset;
         m_orientation = m_player->m_aim;
+        m_engineCamera->SetPositionAndOrientation(m_position, m_orientation);
     }
 }
 
