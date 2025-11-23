@@ -67,7 +67,7 @@ public:
     float m_mouseSensitivity        = 0.075f; // Mouse sensitivity
     Vec3  m_eyeOffset               = Vec3(0.0f, 0.0f, 1.65f); // Eye position offset from feet
 
-private:
+protected:
     //-----------------------------------------------------------------------------------------------
     // [NEW] Private collision detection methods (Task 2.2)
     //-----------------------------------------------------------------------------------------------

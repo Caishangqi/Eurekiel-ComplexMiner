@@ -126,7 +126,7 @@ void GUIBlock3DSelection::Update(float deltaTime)
         {
             // [GOOD] Lock: record the current player eye position and aim
             m_lockedCameraPos     = m_player->m_position + m_player->m_eyeOffset;
-            m_lockedCameraForward = m_player->m_aim.GetForwardVector();
+            m_lockedCameraForward = m_player->m_aim.GetAsMatrix_IFwd_JLeft_KUp().GetIBasis3D();
         }
         // No need to clear when unlocking, it will be overwritten the next time you lock
     }
@@ -145,13 +145,13 @@ void GUIBlock3DSelection::Update(float deltaTime)
     {
         // [SPECTATOR/SPECTATOR_XY] Raycast based on camera position and orientation
         rayStart = m_player->GetCamera()->GetPosition();
-        rayDir   = m_player->GetCamera()->GetOrientation().GetForwardVector();
+        rayDir   = m_player->GetCamera()->GetOrientation().GetAsMatrix_IFwd_JLeft_KUp().GetIBasis3D();
     }
     else
     {
         // [NORMAL] Raycast based on player eye position and aim
         rayStart = m_player->m_position + m_player->m_eyeOffset;
-        rayDir   = m_player->m_aim.GetForwardVector();
+        rayDir   = m_player->m_aim.GetAsMatrix_IFwd_JLeft_KUp().GetIBasis3D();
     }
 
     // Call World::RaycastVsBlocks (maximum distance 16 meters)

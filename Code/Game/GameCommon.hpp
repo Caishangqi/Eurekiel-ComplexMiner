@@ -57,16 +57,10 @@ constexpr float g_cornerOffset  = 0.01f; // Corner inset offset to avoid floatin
 constexpr float g_raycastOffset = 0.01f; // Raycast offset to ensure accurate detection (meters)
 /// 
 
-/// Camera mode
-enum class CameraMode
-{
-    SPECTATOR_FULL = 0,
-    SPECTATOR_XY,
-    THIRD_PERSON,
-    FIRST_PERSON
-};
-
-const char* CameraModeToString(CameraMode mode);
+//------------------------------------------------------------------------------------------------------------------------------
+// Camera Mode - Defined in CameraMode.hpp
+//------------------------------------------------------------------------------------------------------------------------------
+#include "Gameplay/Player/CameraMode.hpp"
 
 void DebugDrawRing(const Vec2& center, float radius, float thickness, const Rgba8& color);
 

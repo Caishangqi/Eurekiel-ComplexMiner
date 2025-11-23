@@ -14,6 +14,7 @@
 #include "Engine/Renderer/DebugRenderSystem.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Core/Clock.hpp"
+#include "Engine/Math/LineSegment2.hpp"
 #include "Engine/Window/Window.hpp"
 #include "Game/Framework/App.hpp"
 #include "Game/Framework/GUISubsystem.hpp"
@@ -355,6 +356,9 @@ void Player::UpdateCameraSettings()
 
 void Player::RenderDebugPhysics() const
 {
+    std::vector<Vertex_PCU> debugVerts;
+    debugVerts.reserve(1024);
+
     // Early exit if debug rendering is disabled
     if (!g_debugPhysicsEnabled)
         return;
@@ -367,7 +371,7 @@ void Player::RenderDebugPhysics() const
     AABB3 worldBounds  = m_physicsBounds;
     worldBounds.m_mins += m_position;
     worldBounds.m_maxs += m_position;
-    DebugDrawWorldAABB3(worldBounds, Rgba8::CYAN, DebugDrawMode::X_RAY);
+    AddVertsForCube3DWireFrame(debugVerts, worldBounds, Rgba8::CYAN);
 
     // 2. Draw 12 collision detection rays (only when moving)
     if (m_velocity.GetLengthSquared() > 0.0001f)
@@ -376,14 +380,14 @@ void Player::RenderDebugPhysics() const
         BuildCornerPoints(corners);
 
         Vec3  rayDirection = m_velocity.GetNormalized();
-        float deltaTime    = Clock::GetMaster().GetDeltaTime();
+        float deltaTime    = g_theGame->m_clock->GetDeltaSeconds();
         float rayDistance  = m_velocity.GetLength() * deltaTime + g_raycastOffset;
 
         for (int i = 0; i < 12; ++i)
         {
             Vec3 rayStart = m_position + corners[i];
             Vec3 rayEnd   = rayStart + rayDirection * rayDistance;
-            DebugDrawWorldLine(rayStart, rayEnd, Rgba8::CYAN);
+            AddVertsForArrow3D(debugVerts, rayEnd, rayStart, 0.05f, 0.1f, Rgba8::CYAN);
         }
     }
 
@@ -401,23 +405,6 @@ void Player::RenderDebugPhysics() const
     {
         Vec3 rayStart = m_position + baseCorners[i];
         Vec3 rayEnd   = rayStart + Vec3(0.0f, 0.0f, -2.0f * g_raycastOffset);
-        DebugDrawWorldLine(rayStart, rayEnd, groundRayColor);
-    }
-
-    // 4. Draw world coordinate system in spectator modes
-    CameraMode cameraMode = m_gameCamera->GetCameraMode();
-    if (cameraMode == CameraMode::SPECTATOR ||
-        cameraMode == CameraMode::SPECTATOR_XY ||
-        cameraMode == CameraMode::INDEPENDENT)
-    {
-        Vec3  origin     = m_position;
-        float axisLength = 2.0f;
-
-        // X axis (red)
-        DebugDrawWorldLine(origin, origin + Vec3(axisLength, 0, 0), Rgba8::RED);
-        // Y axis (green)
-        DebugDrawWorldLine(origin, origin + Vec3(0, axisLength, 0), Rgba8::GREEN);
-        // Z axis (blue)
-        DebugDrawWorldLine(origin, origin + Vec3(0, 0, axisLength), Rgba8::BLUE);
+        AddVertsForArrow3D(debugVerts, rayStart, rayEnd, 0.05f, 0.1f, groundRayColor, 6);
     }
 }

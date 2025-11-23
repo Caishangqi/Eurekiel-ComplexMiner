@@ -5,6 +5,7 @@
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/IRenderer.hpp"
 #include "Game/GameCommon.hpp"
+#include "Game/Gameplay/Player/GameCamera.hpp"
 #include "Game/Gameplay/Player/Player.hpp"
 
 Crosser::Crosser()
@@ -68,16 +69,17 @@ void GUICrosser::Update(float deltaTime)
     m_crosser->Update(deltaTime);
 
     // [UPDATED] 使用新的GameCamera系统获取引擎Camera
-    m_hudCamera = m_player->GetCamera()->GetEngineCamera();
+    // [GOOD] 直接使用原始指针，不转移所有权
+    Camera* engineCamera = m_player->GetCamera()->GetEngineCamera();
 
     // [IMPORTANT] 准星位置基于相机朝向,确保永远在屏幕中心
-    Vec3  cameraPosition    = m_hudCamera->GetPosition();
-    Vec3  cameraForward     = m_hudCamera->GetOrientation().GetForwardVector();
+    Vec3  cameraPosition    = engineCamera->GetPosition();
+    Vec3  cameraForward     = engineCamera->GetOrientation().GetAsMatrix_IFwd_JLeft_KUp().GetIBasis3D();
     float offsetDistance    = 2.0f;
     Vec3  crosshairWorldPos = cameraPosition + cameraForward * offsetDistance;
 
     m_crosser->m_position    = crosshairWorldPos;
-    m_crosser->m_orientation = m_hudCamera->GetOrientation();
+    m_crosser->m_orientation = engineCamera->GetOrientation();
 }
 
 void GUICrosser::OnCreate()

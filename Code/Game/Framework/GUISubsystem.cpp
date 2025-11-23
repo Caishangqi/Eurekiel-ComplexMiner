@@ -43,7 +43,8 @@ void GUISubsystem::Startup()
 {
     LogInfo("GUISubsystem", "Starting up GUISubsystem...");
     // 3D Camera, use for HUD
-    m_hudCamera         = std::make_unique<Camera>();
+    // [FIX] 使用 std::make_shared 而不是 std::make_unique，匹配成员变量类型
+    m_hudCamera         = std::make_shared<Camera>();
     m_hudCamera->m_mode = eMode_Perspective;
     m_hudCamera->SetPerspectiveView(2.0f, 60.f, 0.1f, 100.f);
     Mat44 ndcMatrix;
@@ -51,7 +52,8 @@ void GUISubsystem::Startup()
     m_hudCamera->SetCameraToRenderTransform(ndcMatrix);
 
     // 2D Camera, use for GUI
-    m_guiCamera         = std::make_unique<Camera>();
+    // [FIX] 使用 std::make_shared 而不是 std::make_unique，匹配成员变量类型
+    m_guiCamera         = std::make_shared<Camera>();
     m_guiCamera->m_mode = eMode_Orthographic;
     m_guiCamera->SetOrthographicView(m_config.screenSpace.m_mins, m_config.screenSpace.m_maxs);
 

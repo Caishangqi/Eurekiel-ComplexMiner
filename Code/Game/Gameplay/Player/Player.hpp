@@ -63,5 +63,5 @@ private:
     static std::shared_ptr<GUIPlayerInventory>  m_guiPlayerInventory;
     static std::shared_ptr<GUIBlock3DSelection> m_guiBlockSelection;
 
-    CameraMode m_cameraMode = CameraMode::SPECTATOR_FULL;
+    CameraMode m_cameraMode = CameraMode::FIRST_PERSON;
 };
