@@ -52,8 +52,19 @@ Entity::~Entity()
 
 void Entity::Update(float deltaSeconds)
 {
-    UpdatePhysics(deltaSeconds); // [NEW] Call physics update (Task 1.2)
-    UpdateIsGrounded(); // [NEW] Update grounded state (Task 1.2)
+    // [NEW] Fixed timestep physics update (Task 2.5)
+    // Accumulate time and run physics in fixed steps to prevent tunneling at high speeds
+    m_physicsAccumulator += deltaSeconds;
+
+    // Run physics updates in fixed timesteps (60Hz)
+    while (m_physicsAccumulator >= g_fixedPhysicsTimeStep)
+    {
+        UpdatePhysics(g_fixedPhysicsTimeStep);
+        m_physicsAccumulator -= g_fixedPhysicsTimeStep;
+    }
+
+    // Update grounded state after all physics steps
+    UpdateIsGrounded();
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -65,23 +76,17 @@ void Entity::UpdatePhysics(float deltaSeconds)
     // 1. Calculate deltaPosition
     Vec3 deltaPosition = m_velocity * deltaSeconds;
 
-    // [Early exit optimization] Skip complex calculations when nearly stationary
-    if (deltaPosition.GetLengthSquared() < 0.0001f)
-    {
-        m_acceleration = Vec3::ZERO;
-        return;
-    }
-
-    // 2. Apply gravity (only WALKING mode + not grounded + chunk exists under feet)
+    // 2. Apply gravity FIRST (only WALKING mode + not grounded)
+    // [FIXED] Gravity must be applied before early exit check
+    // Bug fix: Previous code checked early exit before applying gravity, causing airborne players to never fall
     if (m_physicsMode == PhysicsMode::WALKING && !m_isGrounded)
     {
-        // Check if chunk exists under player's feet
-        // Note: World access requires Game pointer and will be validated
         if (m_game != nullptr)
         {
             m_acceleration.z -= m_gravityConstant;
         }
     }
+
 
     // 3. Apply friction/drag (horizontal only)
     // [Task 2.4] Friction behavior differs by physics mode:

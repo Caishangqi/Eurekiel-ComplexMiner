@@ -53,8 +53,14 @@ constexpr int GRID_UNIT_SIZE = 5;
 //------------------------------------------------------------------------------------------------------------------------------
 constexpr float g_playerWidth   = 0.6f; // Player collision box width (meters)
 constexpr float g_playerHeight  = 1.8f; // Player collision box height (meters)
-constexpr float g_cornerOffset  = 0.01f; // Corner inset offset to avoid floating point precision issues (meters)
-constexpr float g_raycastOffset = 0.01f; // Raycast offset to ensure accurate detection (meters)
+constexpr float g_cornerOffset  = 0.05f; // Corner inset offset to avoid floating point precision issues (meters)
+constexpr float g_raycastOffset = 0.05f; // Raycast offset to ensure accurate detection (meters)
+
+//------------------------------------------------------------------------------------------------------------------------------
+// [NEW] Anti-Tunneling Protection (Task 2.5)
+// Fixed physics timestep ensures consistent collision detection at high speeds
+//------------------------------------------------------------------------------------------------------------------------------
+constexpr float g_fixedPhysicsTimeStep = 0.016f; // 60Hz physics update (1/60 seconds)
 /// 
 
 //------------------------------------------------------------------------------------------------------------------------------

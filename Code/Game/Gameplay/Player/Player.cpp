@@ -101,10 +101,14 @@ void Player::Update(float deltaSeconds)
     m_gameCamera->UpdateFromPlayer(deltaSeconds);
 
     // [DEBUG] Log camera state
-    Vec3        camPos    = m_gameCamera->GetEngineCamera()->GetPosition();
-    EulerAngles camOrient = m_gameCamera->GetEngineCamera()->GetOrientation();
-    DebuggerPrintf("[DEBUG] Camera Pos: (%.2f, %.2f, %.2f) Orient: (%.2f, %.2f, %.2f)\n",
+    Vec3        camPos       = m_gameCamera->GetEngineCamera()->GetPosition();
+    Vec3        gamCamPos    = m_gameCamera->GetPosition();
+    EulerAngles gamCamOrient = m_gameCamera->GetOrientation();
+    EulerAngles camOrient    = m_gameCamera->GetEngineCamera()->GetOrientation();
+    DebuggerPrintf("[DEBUG] Engine Camera Pos: (%.2f, %.2f, %.2f) Orient: (%.2f, %.2f, %.2f)\n",
                    camPos.x, camPos.y, camPos.z, camOrient.m_yawDegrees, camOrient.m_pitchDegrees, camOrient.m_rollDegrees);
+    DebuggerPrintf("[DEBUG] Game Camera Pos: (%.2f, %.2f, %.2f) Orient: (%.2f, %.2f, %.2f)\n",
+                   gamCamPos.x, gamCamPos.y, gamCamPos.z, gamCamOrient.m_yawDegrees, gamCamOrient.m_pitchDegrees, gamCamOrient.m_rollDegrees);
     DebuggerPrintf("[DEBUG] Player Pos: (%.2f, %.2f, %.2f) Aim: (%.2f, %.2f, %.2f)\n",
                    m_position.x, m_position.y, m_position.z, m_aim.m_yawDegrees, m_aim.m_pitchDegrees, m_aim.m_rollDegrees);
 }
@@ -156,10 +160,7 @@ void Player::Render() const
     g_theRenderer->BeginCamera(*m_gameCamera->GetEngineCamera());
 
     // [FIX] Ensure camera context is always properly closed
-    if (g_debugPhysicsEnabled && m_gameCamera->GetCameraMode() != CameraMode::FIRST_PERSON)
-    {
-        RenderDebugPhysics();
-    }
+    //RenderDebugPhysics();
 
     g_theRenderer->EndCamera(*m_gameCamera->GetEngineCamera());
 }
@@ -345,9 +346,6 @@ void Player::HandleMovementInput(float deltaSeconds)
 
 void Player::RenderDebugPhysics() const
 {
-    std::vector<Vertex_PCU> debugVerts;
-    debugVerts.reserve(1024);
-
     // Early exit if debug rendering is disabled
     if (!g_debugPhysicsEnabled)
         return;
@@ -355,6 +353,9 @@ void Player::RenderDebugPhysics() const
     // [IMPORTANT] Only render in non-first-person modes to avoid obstructing view
     if (m_gameCamera->GetCameraMode() == CameraMode::FIRST_PERSON)
         return;
+
+    std::vector<Vertex_PCU> debugVerts;
+    debugVerts.reserve(4096);
 
     // 1. Draw player bounding box (cyan, X-Ray mode)
     AABB3 worldBounds  = m_physicsBounds;
@@ -376,7 +377,7 @@ void Player::RenderDebugPhysics() const
         {
             Vec3 rayStart = m_position + corners[i];
             Vec3 rayEnd   = rayStart + rayDirection * rayDistance;
-            AddVertsForArrow3D(debugVerts, rayEnd, rayStart, 0.05f, 0.1f, Rgba8::CYAN);
+            AddVertsForArrow3D(debugVerts, rayEnd, rayStart, 0.02f, 0.1f, Rgba8::CYAN);
         }
     }
 
@@ -394,6 +395,11 @@ void Player::RenderDebugPhysics() const
     {
         Vec3 rayStart = m_position + baseCorners[i];
         Vec3 rayEnd   = rayStart + Vec3(0.0f, 0.0f, -2.0f * g_raycastOffset);
-        AddVertsForArrow3D(debugVerts, rayStart, rayEnd, 0.05f, 0.1f, groundRayColor, 6);
+        AddVertsForArrow3D(debugVerts, rayStart, rayEnd, 0.02f, 0.1f, groundRayColor, 6);
     }
+    g_theRenderer->SetModelConstants();
+    g_theRenderer->BindShader(nullptr);
+    g_theRenderer->SetDepthMode(depth_mode::DISABLED);
+    g_theRenderer->BindTexture(nullptr);
+    g_theRenderer->DrawVertexArray(debugVerts);
 }

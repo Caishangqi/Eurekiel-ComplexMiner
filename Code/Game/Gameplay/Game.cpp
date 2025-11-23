@@ -68,7 +68,7 @@ Game::Game()
 
     /// Player
     m_player                = new Player(this);
-    m_player->m_position    = Vec3(0, 0, 128);
+    m_player->m_position    = Vec3(0, 0, 96);
     m_player->m_orientation = EulerAngles(-45, 30, 0);
     /// 
 
@@ -424,6 +424,8 @@ void Game::RenderWorld() const
         g_theRenderer->BindShader(m_worldShader);
         m_world->Render(g_theRenderer);
         g_theRenderer->BindShader(nullptr);
+
+        m_player->RenderDebugPhysics();
     }
 }
 

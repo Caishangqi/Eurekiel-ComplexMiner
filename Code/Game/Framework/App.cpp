@@ -58,7 +58,7 @@ Game*                  g_theGame     = nullptr;
 GUISubsystem*          g_theGUI      = nullptr;
 
 // Debug Flags
-bool g_debugPhysicsEnabled = false; // F3 key toggles physics debug rendering
+bool g_debugPhysicsEnabled = true; // F3 key toggles physics debug rendering
 
 App::App()
 {
