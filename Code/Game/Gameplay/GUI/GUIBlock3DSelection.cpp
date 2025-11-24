@@ -99,7 +99,7 @@ void GUIBlock3DSelection::DrawHud()
     if (!tempVerts.empty())
     {
         g_theRenderer->SetDepthMode(depth_mode::DISABLED);
-        g_theRenderer->SetModelConstants(Mat44(), Rgba8::WHITE);
+        g_theRenderer->SetModelConstants();
         g_theRenderer->SetBlendMode(blend_mode::ALPHA);
         g_theRenderer->BindTexture(nullptr);
         g_theRenderer->DrawVertexArray(tempVerts);
@@ -110,8 +110,6 @@ void GUIBlock3DSelection::DrawHud()
 void GUIBlock3DSelection::Update(float deltaTime)
 {
     UNUSED(deltaTime)
-    m_hudCamera->SetPosition(m_player->m_position);
-    m_hudCamera->SetOrientation(m_player->m_orientation);
 
     // [STEP 1] R key switches lock state
     // [IMPORTANT] R key is disabled in SPECTATOR and SPECTATOR_XY modes (per Task 3.4 requirement)
@@ -156,6 +154,9 @@ void GUIBlock3DSelection::Update(float deltaTime)
 
     // Call World::RaycastVsBlocks (maximum distance 16 meters)
     m_currentRaycast = g_theGame->m_world->RaycastVsBlocks(rayStart, rayDir, 16.0f);
+
+    m_hudCamera->SetPosition(m_player->GetCamera()->GetPosition());
+    m_hudCamera->SetOrientation(m_player->GetCamera()->GetOrientation());
 }
 
 void GUIBlock3DSelection::OnCreate()

@@ -5,6 +5,7 @@
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/IRenderer.hpp"
 #include "Game/GameCommon.hpp"
+#include "Game/Gameplay/Player/GameCamera.hpp"
 #include "Game/Gameplay/Player/Player.hpp"
 
 Crosser::Crosser()
@@ -60,6 +61,8 @@ void GUICrosser::Draw()
 
 void GUICrosser::DrawHud()
 {
+    m_hudCamera->SetPosition(m_player->m_position);
+    m_hudCamera->SetOrientation(m_player->m_orientation);
     m_crosser->Renderer();
 }
 
@@ -67,13 +70,10 @@ void GUICrosser::Update(float deltaTime)
 {
     m_crosser->Update(deltaTime);
     Vec3 iFwd, jLeft, kUp;
-    m_player->m_orientation.GetAsVectors_IFwd_JLeft_KUp(iFwd, jLeft, kUp);
+    m_player->GetCamera()->GetOrientation().GetAsVectors_IFwd_JLeft_KUp(iFwd, jLeft, kUp);
     float offsetDistance  = 2.f;
-    Vec3  debugAxisPos    = m_player->m_position + iFwd * offsetDistance;
+    Vec3  debugAxisPos    = m_player->GetCamera()->GetPosition() + iFwd * offsetDistance;
     m_crosser->m_position = debugAxisPos;
-
-    m_hudCamera->SetPosition(m_player->m_position);
-    m_hudCamera->SetOrientation(m_player->m_orientation);
 }
 
 void GUICrosser::OnCreate()
