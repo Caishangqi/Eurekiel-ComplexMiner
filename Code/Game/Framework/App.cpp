@@ -320,6 +320,8 @@ bool App::Event_ConsoleStartup(EventArgs& args)
                              "W/A          - Move\n"
                              "S/D          - Strafe\n"
                              "Q/E          - Down | Up\n"
+                             "C            - Change Camera Mode\n"
+                             "V            - Change Physics Mode\n"
                              "Shift        - Sprint\n"
                              "LMB          - Place select block\n"
                              "RMB          - Break block under player\n"
