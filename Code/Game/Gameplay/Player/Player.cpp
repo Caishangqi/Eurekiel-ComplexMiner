@@ -75,7 +75,7 @@ Player::Player(Game* owner) : Entity(owner)
     m_gameCamera = std::make_unique<GameCamera>(this);
 
     // [NEW] Load control parameters from settings.yml (Task 6.4)
-    ControlConfig controlConfig = ControlConfigParser::LoadFromYaml("Run/.enigma/settings.yml");
+    ControlConfig controlConfig = ControlConfigParser::LoadFromYaml(".enigma/settings.yml");
     m_mouseSensitivity          = controlConfig.m_mouseSensitivity;
 
     // Event Subscribe
@@ -105,12 +105,12 @@ void Player::Update(float deltaSeconds)
     Vec3        gamCamPos    = m_gameCamera->GetPosition();
     EulerAngles gamCamOrient = m_gameCamera->GetOrientation();
     EulerAngles camOrient    = m_gameCamera->GetEngineCamera()->GetOrientation();
-    DebuggerPrintf("[DEBUG] Engine Camera Pos: (%.2f, %.2f, %.2f) Orient: (%.2f, %.2f, %.2f)\n",
+    /*DebuggerPrintf("[DEBUG] Engine Camera Pos: (%.2f, %.2f, %.2f) Orient: (%.2f, %.2f, %.2f)\n",
                    camPos.x, camPos.y, camPos.z, camOrient.m_yawDegrees, camOrient.m_pitchDegrees, camOrient.m_rollDegrees);
     DebuggerPrintf("[DEBUG] Game Camera Pos: (%.2f, %.2f, %.2f) Orient: (%.2f, %.2f, %.2f)\n",
                    gamCamPos.x, gamCamPos.y, gamCamPos.z, gamCamOrient.m_yawDegrees, gamCamOrient.m_pitchDegrees, gamCamOrient.m_rollDegrees);
     DebuggerPrintf("[DEBUG] Player Pos: (%.2f, %.2f, %.2f) Aim: (%.2f, %.2f, %.2f)\n",
-                   m_position.x, m_position.y, m_position.z, m_aim.m_yawDegrees, m_aim.m_pitchDegrees, m_aim.m_rollDegrees);
+                   m_position.x, m_position.y, m_position.z, m_aim.m_yawDegrees, m_aim.m_pitchDegrees, m_aim.m_rollDegrees);*/
 }
 
 void Player::UpdateInput(float deltaSeconds)

@@ -35,7 +35,7 @@ Entity::Entity(Game* owner)
       , m_eyeOffset(0.0f, 0.0f, 1.65f)
 {
     // [NEW] Load physics parameters from settings.yml (Task 6.4)
-    PhysicsConfig physicsConfig = PhysicsConfigParser::LoadFromYaml("Run/.enigma/settings.yml");
+    PhysicsConfig physicsConfig = PhysicsConfigParser::LoadFromYaml(".enigma/settings.yml");
     m_gravityConstant           = physicsConfig.m_gravityConstant;
     m_groundedDragCoefficient   = physicsConfig.m_groundedDragCoefficient;
     m_airborneDragCoefficient   = physicsConfig.m_airborneDragCoefficient;

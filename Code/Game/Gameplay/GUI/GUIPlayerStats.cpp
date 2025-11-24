@@ -56,19 +56,20 @@ void GUIPlayerStats::Update(float deltaTime)
 
     // Left top corner information (from top to bottom)
 
-    // Camera Mode (白色)
+    // Camera Mode
     std::string cameraModeText = "Camera: ";
     cameraModeText             += GetCameraModeName(m_player->GetCamera()->GetCameraMode());
     cameraModeText             += " [C]";
-    AABB2 cameraModeBox(Vec2(10, screenHeight - 36), Vec2(400, screenHeight - 20));
-    m_defaultGUIFont->AddVertsForTextInBox2D(m_vertices, cameraModeText, cameraModeBox, 16.0f, Rgba8::WHITE, 1, Vec2(0.0f, 1.0f));
+    AABB2 cameraModeBox(Vec2(0, screenHeight - 36), Vec2(screenWidth, screenHeight - 20));
+    m_defaultGUIFont->AddVertsForTextInBox2D(m_vertices, cameraModeText, cameraModeBox, 12.0f, Rgba8::WHITE, 1, Vec2(0.0f, 1.0f));
 
-    // Physics Mode (橙色)
+    // Physics Mode
     std::string physicsModeText = "Physics: ";
     physicsModeText             += GetPhysicsModeName(m_player->GetPhysicsMode());
     physicsModeText             += " [V]";
-    AABB2 physicsModeBox(Vec2(10, screenHeight - 56), Vec2(400, screenHeight - 40));
-    m_defaultGUIFont->AddVertsForTextInBox2D(m_vertices, physicsModeText, physicsModeBox, 16.0f, Rgba8::ORANGE, 1, Vec2(0.0f, 1.0f));
+    AABB2 physicsModeBox        = cameraModeBox;
+    physicsModeBox.SetCenter(cameraModeBox.GetCenter() + Vec2(0, -12));
+    m_defaultGUIFont->AddVertsForTextInBox2D(m_vertices, physicsModeText, physicsModeBox, 12.0f, Rgba8::WHITE, 1, Vec2(0.0f, 1.0f));
 }
 
 void GUIPlayerStats::OnCreate()

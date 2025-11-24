@@ -45,7 +45,7 @@ void GUIBlock3DSelection::DrawHud()
     // [STEP 1] If locked, draw 3D ray
     if (m_isRaycastLocked)
     {
-        Vec3 rayEnd = m_lockedCameraPos + m_lockedCameraForward * 8.0f;
+        Vec3 rayEnd = m_lockedCameraPos + m_lockedCameraForward * 16.0f;
 
         //Draw arrow (yellow indicates locked state)
         Rgba8 rayColor = m_currentRaycast.m_didImpact ? Rgba8::YELLOW : Rgba8::ORANGE;
