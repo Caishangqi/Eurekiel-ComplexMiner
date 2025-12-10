@@ -628,6 +628,8 @@
     <Content Include="..\..\Run\.enigma\data\simpleminer\block\oak_leaves.yml"/>
     <Content Include="..\..\Run\.enigma\data\simpleminer\block\oak_leaves_snow.yml"/>
     <Content Include="..\..\Run\.enigma\data\simpleminer\block\oak_log.yml"/>
+    <Content Include="..\..\Run\.enigma\data\simpleminer\block\oak_slab.yml"/>
+    <Content Include="..\..\Run\.enigma\data\simpleminer\block\oak_stairs.yml"/>
     <Content Include="..\..\Run\.enigma\data\simpleminer\block\obsidian.yml"/>
     <Content Include="..\..\Run\.enigma\data\simpleminer\block\packed_ice.yml"/>
     <Content Include="..\..\Run\.enigma\data\simpleminer\block\sand.yml"/>

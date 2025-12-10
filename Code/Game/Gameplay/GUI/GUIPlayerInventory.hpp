@@ -38,6 +38,6 @@ private:
 private:
     std::vector<Vertex_PCU>                                      m_vertices;
     std::vector<std::shared_ptr<enigma::registry::block::Block>> m_blocks;
-    unsigned int                                                 m_currentIndex = 22;
+    unsigned int                                                 m_currentIndex = 0;
     unsigned int                                                 m_numBlocks    = 0;
 };

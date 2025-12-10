@@ -28,6 +28,7 @@
 #include "Engine/Graphic/Core/RenderState.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Engine/Voxel/Chunk/Chunk.hpp"
+#include "Engine/Model/ModelSubsystem.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Renderer/ConstantBuffer.hpp"
 #include "Engine/Voxel/Builtin/DefaultBlock.hpp"
@@ -77,6 +78,14 @@ Game::Game()
 
     /// Block Registration Phase - MUST happen before World creation
     RegisterBlocks();
+
+    // [NEW] Compile all block models after registration
+    // This applies blockstate rotations from JSON files
+    auto* modelSubsystem = GEngine->GetSubsystem<enigma::model::ModelSubsystem>();
+    if (modelSubsystem)
+    {
+        modelSubsystem->CompileAllBlockModels();
+    }
 
     /// World Creation with RAII constructor
     using namespace enigma::voxel;

@@ -158,7 +158,8 @@ void App::Startup(char*)
     resourceConfig.enableHotReload  = true;
     resourceConfig.logResourceLoads = true;
     resourceConfig.printScanResults = true;
-    resourceConfig.AddNamespace("simpleminer", ""); // Add custom namespaces
+    resourceConfig.AddNamespace("simpleminer", ""); // Add game namespaces
+    resourceConfig.AddNamespace("engine", ""); // Add engine namespaces (for parent models like block/slab)
 
     auto resourceSubsystem = std::make_unique<ResourceSubsystem>(resourceConfig);
     GEngine->RegisterSubsystem(std::move(resourceSubsystem));
@@ -197,7 +198,7 @@ void App::Startup(char*)
     g_theInput->Startup();
 
     GEngine->Startup();
-    g_theLogger->SetGlobalLogLevel(LogLevel::ERROR_);
+    g_theLogger->SetGlobalLogLevel(LogLevel::INFO);
 
     g_theGame = new Game();
 

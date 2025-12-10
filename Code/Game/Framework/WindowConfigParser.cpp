@@ -18,33 +18,33 @@ WindowConfig WindowConfigParser::LoadFromYaml(const std::string& yamlPath)
     {
         auto yamlConfig = YamlConfiguration::LoadFromFile(yamlPath);
 
-        // 调试输出：确认配置文件加载
+        // Debug output: Confirm configuration file loading
         DebuggerPrintf("Loading window config from: %s\n", yamlPath.c_str());
 
-        // 解析窗口模式
+        // Parse window mode
         std::string windowModeStr = yamlConfig.GetString("video.windowMode", "windowed");
         config.m_windowMode       = ParseWindowMode(windowModeStr);
         DebuggerPrintf("Parsed window mode: %s -> %d\n", windowModeStr.c_str(), (int)config.m_windowMode);
 
-        // 解析分辨率
+        // parse resolution
         config.m_resolution = ParseResolution(yamlPath);
         DebuggerPrintf("Parsed resolution: %dx%d\n", config.m_resolution.x, config.m_resolution.y);
 
-        // 解析宽高比
+        // Parse aspect ratio
         config.m_aspectRatio = ParseAspectRatio(yamlPath);
         DebuggerPrintf("Parsed aspect ratio: %f\n", config.m_aspectRatio);
 
-        // 解析窗口标题
+        // Parse window title
         std::string appName  = yamlConfig.GetString("general.appName", "SimpleMiner");
         config.m_windowTitle = appName;
         DebuggerPrintf("Parsed window title: %s\n", config.m_windowTitle.c_str());
 
-        // 解析 Always On Top 设置
+        // Parse Always On Top settings
         bool alwaysOnTop     = yamlConfig.GetBoolean("video.window.alwaysOnTop", false);
         config.m_alwaysOnTop = alwaysOnTop;
         DebuggerPrintf("Parsed always on top: %s\n", alwaysOnTop ? "true" : "false");
 
-        // 验证配置
+        //Verify configuration
         if (!ValidateConfig(config))
         {
             DebuggerPrintf("Warning: Invalid window configuration detected, using defaults\n");
@@ -54,7 +54,7 @@ WindowConfig WindowConfigParser::LoadFromYaml(const std::string& yamlPath)
     {
         DebuggerPrintf("Error loading window config from %s: %s\n", yamlPath.c_str(), e.what());
         DebuggerPrintf("Using default window configuration\n");
-        // 确保使用合理的默认值
+        // Make sure to use sensible defaults
         config.m_windowTitle = "SimpleMiner";
         config.m_windowMode  = WindowMode::Windowed;
         config.m_resolution  = IntVec2(1600, 900);
@@ -85,7 +85,7 @@ IntVec2 WindowConfigParser::ParseResolution(const std::string& configPath)
     {
         auto yamlConfig = YamlConfiguration::LoadFromFile(configPath);
 
-        // 使用修复后的连点语法直接获取分辨率
+        // Use the repaired dot syntax to directly obtain the resolution
         if (yamlConfig.Contains("video.resolution.width") && yamlConfig.Contains("video.resolution.height"))
         {
             int width  = yamlConfig.GetInt("video.resolution.width", 1600);
@@ -99,7 +99,7 @@ IntVec2 WindowConfigParser::ParseResolution(const std::string& configPath)
             }
         }
 
-        // 回退到直接 yaml-cpp（备用方案）
+        // Fallback to direct yaml-cpp (alternative solution)
         YAML::Node yamlNode = YAML::LoadFile(configPath);
 
         if (yamlNode["video"] && yamlNode["video"]["resolution"])
@@ -129,26 +129,26 @@ IntVec2 WindowConfigParser::ParseResolution(const std::string& configPath)
 
 float WindowConfigParser::ParseAspectRatio(const std::string& configPath)
 {
-    float aspectRatio = 16.0f / 9.0f; // 默认宽高比
+    float aspectRatio = 16.0f / 9.0f; //Default aspect ratio
 
     try
     {
-        // 直接使用 yaml-cpp，避免 YamlConfiguration 的问题
+        // Use yaml-cpp directly to avoid problems with YamlConfiguration
         YAML::Node yamlNode = YAML::LoadFile(configPath);
 
         if (yamlNode["video"] && yamlNode["video"]["aspectRatio"])
         {
             aspectRatio = yamlNode["video"]["aspectRatio"].as<float>(16.0f / 9.0f);
-            DebuggerPrintf("直接yaml-cpp加载宽高比: %f\n", aspectRatio);
+            DebuggerPrintf("Direct yaml-cpp loading aspect ratio: %f\n", aspectRatio);
         }
         else
         {
-            // 如果没有显式的宽高比，从分辨率计算
+            // If there is no explicit aspect ratio, calculate it from the resolution
             IntVec2 resolution = ParseResolution(configPath);
             if (resolution.y > 0)
             {
                 aspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
-                DebuggerPrintf("从分辨率计算宽高比: %f\n", aspectRatio);
+                DebuggerPrintf("Calculate aspect ratio from resolution: %f\n", aspectRatio);
             }
         }
     }
@@ -156,12 +156,12 @@ float WindowConfigParser::ParseAspectRatio(const std::string& configPath)
     {
         DebuggerPrintf("Error parsing aspect ratio from %s: %s\n", configPath.c_str(), e.what());
 
-        // 如果解析失败，尝试从分辨率计算
+        // If parsing fails, try calculating from resolution
         IntVec2 resolution = ParseResolution(configPath);
         if (resolution.y > 0)
         {
             aspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
-            DebuggerPrintf("Fallback: 从分辨率计算宽高比: %f\n", aspectRatio);
+            DebuggerPrintf("Fallback: Calculate aspect ratio from resolution: %f\n", aspectRatio);
         }
     }
 
@@ -170,20 +170,20 @@ float WindowConfigParser::ParseAspectRatio(const std::string& configPath)
 
 bool WindowConfigParser::ValidateConfig(const WindowConfig& config)
 {
-    // 验证分辨率
+    // Verify resolution
     if (config.m_resolution.x < 640 || config.m_resolution.x > 7680 ||
         config.m_resolution.y < 480 || config.m_resolution.y > 4320)
     {
         return false;
     }
 
-    // 验证宽高比
+    // Verify aspect ratio
     if (config.m_aspectRatio <= 0.0f || config.m_aspectRatio > 10.0f)
     {
         return false;
     }
 
-    // 验证窗口标题
+    // Verify window title
     if (config.m_windowTitle.empty())
     {
         return false;

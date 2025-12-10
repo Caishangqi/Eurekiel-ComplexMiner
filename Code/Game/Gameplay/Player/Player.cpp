@@ -201,8 +201,10 @@ void Player::ProcessInput(float deltaTime)
                 enigma::voxel::BlockIterator placeIter = raycast.GetPlacementIterator();
                 if (placeIter.IsValid())
                 {
-                    // Call World::PlaceBlock to place the block
-                    m_game->m_world->PlaceBlock(placeIter, selectedBlock->GetDefaultState());
+                    // Call World::PlaceBlock to place the block with placement context
+                    Vec3 forward, left, up;
+                    m_gameCamera->GetOrientation().GetAsVectors_IFwd_JLeft_KUp(forward, left, up);
+                    m_game->m_world->PlaceBlock(placeIter, selectedBlock.get(), raycast, forward);
                 }
             }
         }

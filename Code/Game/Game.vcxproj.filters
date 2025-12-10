@@ -18,46 +18,80 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Game.cpp">
-      <Filter>Gameplay</Filter>
-    </ClCompile>
     <ClCompile Include="GameCommon.cpp">
       <Filter>Gameplay</Filter>
-    </ClCompile>
-    <ClCompile Include="App.cpp">
-      <Filter>Framework</Filter>
     </ClCompile>
     <ClCompile Include="Main_Windows.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="Prop.cpp" />
-    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Gameplay\TreeStamps\OakSnowTreeStamp.cpp">
       <Filter>Gameplay\TreeStamps</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\App.cpp" />
+    <ClCompile Include="Framework\ControlConfigParser.cpp" />
+    <ClCompile Include="Framework\DummyTask.cpp" />
+    <ClCompile Include="Framework\Entity\Entity.cpp" />
+    <ClCompile Include="Framework\GUISubsystem.cpp" />
+    <ClCompile Include="Framework\PhysicsConfigParser.cpp" />
+    <ClCompile Include="Framework\WindowConfigParser.cpp" />
+    <ClCompile Include="Gameplay\Generator\SimpleMinerGenerator.cpp" />
+    <ClCompile Include="Gameplay\Generator\SimpleMinerTreeGenerator.cpp" />
+    <ClCompile Include="Gameplay\GUI\GUIPlayerStats.cpp" />
+    <ClCompile Include="Gameplay\Player\GameCamera.cpp" />
+    <ClCompile Include="Gameplay\Player\Player.cpp" />
+    <ClCompile Include="Gameplay\Game.cpp" />
+    <ClCompile Include="Gameplay\GUI\GUIBlock3DSelection.cpp" />
+    <ClCompile Include="Gameplay\GUI\GUICrosser.cpp" />
+    <ClCompile Include="Gameplay\GUI\GUIDebugLight.cpp" />
+    <ClCompile Include="Gameplay\GUI\GUIGrid.cpp" />
+    <ClCompile Include="Gameplay\GUI\GUIPlayerInventory.cpp" />
+    <ClCompile Include="Gameplay\GUI\GUIProfiler.cpp" />
+    <ClCompile Include="Gameplay\TreeStamps\AcaciaTreeStamp.cpp" />
+    <ClCompile Include="Gameplay\TreeStamps\BirchTreeStamp.cpp" />
+    <ClCompile Include="Gameplay\TreeStamps\CactusStamp.cpp" />
+    <ClCompile Include="Gameplay\TreeStamps\JungleTreeStamp.cpp" />
+    <ClCompile Include="Gameplay\TreeStamps\OakTreeStamp.cpp" />
+    <ClCompile Include="Gameplay\TreeStamps\SpruceTreeStamp.cpp" />
+    <ClCompile Include="Gameplay\TreeStamps\SpruceSnowTreeStamp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Game.hpp">
-      <Filter>Gameplay</Filter>
-    </ClInclude>
     <ClInclude Include="GameCommon.hpp">
       <Filter>Gameplay</Filter>
-    </ClInclude>
-    <ClInclude Include="App.hpp">
-      <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="EngineBuildPreferences.hpp">
       <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="Entity.hpp" />
-    <ClInclude Include="Player.hpp" />
-    <ClInclude Include="Prop.hpp" />
     <ClInclude Include="Gameplay\TreeStamps\OakSnowTreeStamp.hpp">
       <Filter>Gameplay\TreeStamps</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\Run\Shaders\Default.hlsl" />
+    <ClInclude Include="Framework\App.hpp" />
+    <ClInclude Include="Framework\ControlConfigParser.hpp" />
+    <ClInclude Include="Framework\Entity\Entity.hpp" />
+    <ClInclude Include="Framework\Entity\PhysicsMode.hpp" />
+    <ClInclude Include="Framework\GUISubsystem.hpp" />
+    <ClInclude Include="Framework\DummyTask.hpp" />
+    <ClInclude Include="Framework\PhysicsConfigParser.hpp" />
+    <ClInclude Include="Framework\WindowConfigParser.hpp" />
+    <ClInclude Include="Framework\World\WorldConstant.hpp" />
+    <ClInclude Include="Gameplay\Generator\SimpleMinerGenerator.hpp" />
+    <ClInclude Include="Gameplay\Generator\SimpleMinerTreeGenerator.hpp" />
+    <ClInclude Include="Gameplay\GUI\GUIPlayerStats.hpp" />
+    <ClInclude Include="Gameplay\Player\CameraMode.hpp" />
+    <ClInclude Include="Gameplay\Player\GameCamera.hpp" />
+    <ClInclude Include="Gameplay\Player\Player.hpp" />
+    <ClInclude Include="Gameplay\Game.hpp" />
+    <ClInclude Include="Gameplay\GUI\GUIBlock3DSelection.hpp" />
+    <ClInclude Include="Gameplay\GUI\GUICrosser.hpp" />
+    <ClInclude Include="Gameplay\GUI\GUIDebugLight.hpp" />
+    <ClInclude Include="Gameplay\GUI\GUIGrid.hpp" />
+    <ClInclude Include="Gameplay\GUI\GUIPlayerInventory.hpp" />
+    <ClInclude Include="Gameplay\GUI\GUIProfiler.hpp" />
+    <ClInclude Include="Gameplay\TreeStamps\AcaciaTreeStamp.hpp" />
+    <ClInclude Include="Gameplay\TreeStamps\BirchTreeStamp.hpp" />
+    <ClInclude Include="Gameplay\TreeStamps\CactusStamp.hpp" />
+    <ClInclude Include="Gameplay\TreeStamps\JungleTreeStamp.hpp" />
+    <ClInclude Include="Gameplay\TreeStamps\OakTreeStamp.hpp" />
+    <ClInclude Include="Gameplay\TreeStamps\SpruceTreeStamp.hpp" />
+    <ClInclude Include="Gameplay\TreeStamps\SpruceSnowTreeStamp.hpp" />
   </ItemGroup>
 </Project>

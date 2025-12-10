@@ -23,7 +23,10 @@ GUIPlayerInventory::GUIPlayerInventory()
     g_theEventSystem->SubscribeEventCallbackFunction("Event.PlayerQuitWorld", Event_Player_Quit_World);
     m_vertices.reserve(2048);
 
-    m_blocks    = enigma::registry::block::BlockRegistry::GetAllBlocks();
+    m_blocks.push_back(enigma::registry::block::BlockRegistry::GetBlock("simpleminer:oak_slab"));
+    m_blocks.push_back(enigma::registry::block::BlockRegistry::GetBlock("simpleminer:oak_stairs"));
+    m_blocks.push_back(enigma::registry::block::BlockRegistry::GetBlock("simpleminer:sandstone"));
+
     m_numBlocks = (unsigned int)m_blocks.size();
 }
 
