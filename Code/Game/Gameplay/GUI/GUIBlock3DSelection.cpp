@@ -6,15 +6,22 @@
 #include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Math/Mat44.hpp"
+#include "Engine/Registry/Block/Block.hpp"
 #include "Engine/Registry/Block/BlockRegistry.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/IRenderer.hpp"
 #include "Engine/Voxel/Block/BlockIterator.hpp"
+#include "Engine/Voxel/Block/BlockState.hpp"
+#include "Engine/Voxel/Block/VoxelShape.hpp"
 #include "Engine/Voxel/World/VoxelRaycastResult3D.hpp"
 #include "Engine/Voxel/World/World.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/Gameplay/Game.hpp"
 #include "Game/Gameplay/Player/Player.hpp"
+
+using enigma::registry::block::Block;
+using enigma::voxel::BlockState;
+using enigma::voxel::VoxelShape;
 
 bool GUIBlock3DSelection::Event_Player_Quit_World(EventArgs& args)
 {
@@ -75,6 +82,134 @@ void GUIBlock3DSelection::DrawHud()
         Rgba8 faceColor(0, 255, 0, 100); // 绿色半透明
         AddVertsForQuad3D(tempVerts, quadCorners[0], quadCorners[1],
                           quadCorners[2], quadCorners[3], faceColor);
+
+        // [2.3] Draw VoxelShape collision boxes (orange) for non-full blocks
+        BlockState* hitState = hitIter.GetBlock();
+        if (hitState && !hitState->IsFullOpaque())
+        {
+            Block* hitBlock = hitState->GetBlock();
+            if (hitBlock)
+            {
+                VoxelShape collisionShape = hitBlock->GetCollisionShape(hitState);
+                if (!collisionShape.IsEmpty())
+                {
+                    Vec3 blockWorldPos(static_cast<float>(hitPos.x),
+                                       static_cast<float>(hitPos.y),
+                                       static_cast<float>(hitPos.z));
+
+                    Vec3            impactPos    = m_currentRaycast.m_impactPos;
+                    Vec3            impactNormal = m_currentRaycast.m_impactNormal;
+                    Rgba8           shapeWireColor(255, 165, 0, 255); // Orange
+                    Rgba8           shapeFaceColor(255, 165, 0, 80); // Orange translucent
+                    constexpr float EPSILON = 0.01f; // Tolerance for face detection
+
+                    // Draw each collision box in the shape
+                    const auto& boxes = collisionShape.GetBoxes();
+                    for (const auto& localBox : boxes)
+                    {
+                        // Transform local box to world coordinates
+                        AABB3 worldBox(
+                            blockWorldPos + localBox.m_mins,
+                            blockWorldPos + localBox.m_maxs
+                        );
+
+                        // Draw orange wireframe for collision shape
+                        AddVertsForCube3DWireFrame(tempVerts, worldBox, shapeWireColor, 0.015f);
+
+                        // Only draw hit face for the box that contains the impact point
+                        // Check if impact point is on one of this box's faces
+                        bool isHitBox = false;
+
+                        // Check +Z face (top)
+                        if (impactNormal.z > 0.5f &&
+                            std::abs(impactPos.z - worldBox.m_maxs.z) < EPSILON &&
+                            impactPos.x >= worldBox.m_mins.x - EPSILON && impactPos.x <= worldBox.m_maxs.x + EPSILON &&
+                            impactPos.y >= worldBox.m_mins.y - EPSILON && impactPos.y <= worldBox.m_maxs.y + EPSILON)
+                        {
+                            isHitBox = true;
+                            AddVertsForQuad3D(tempVerts,
+                                              Vec3(worldBox.m_mins.x, worldBox.m_mins.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_mins.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_maxs.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_mins.x, worldBox.m_maxs.y, worldBox.m_maxs.z),
+                                              shapeFaceColor);
+                        }
+                        // Check -Z face (bottom)
+                        else if (impactNormal.z < -0.5f &&
+                            std::abs(impactPos.z - worldBox.m_mins.z) < EPSILON &&
+                            impactPos.x >= worldBox.m_mins.x - EPSILON && impactPos.x <= worldBox.m_maxs.x + EPSILON &&
+                            impactPos.y >= worldBox.m_mins.y - EPSILON && impactPos.y <= worldBox.m_maxs.y + EPSILON)
+                        {
+                            isHitBox = true;
+                            AddVertsForQuad3D(tempVerts,
+                                              Vec3(worldBox.m_mins.x, worldBox.m_maxs.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_maxs.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_mins.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_mins.x, worldBox.m_mins.y, worldBox.m_mins.z),
+                                              shapeFaceColor);
+                        }
+                        // Check +X face (East)
+                        else if (impactNormal.x > 0.5f &&
+                            std::abs(impactPos.x - worldBox.m_maxs.x) < EPSILON &&
+                            impactPos.y >= worldBox.m_mins.y - EPSILON && impactPos.y <= worldBox.m_maxs.y + EPSILON &&
+                            impactPos.z >= worldBox.m_mins.z - EPSILON && impactPos.z <= worldBox.m_maxs.z + EPSILON)
+                        {
+                            isHitBox = true;
+                            AddVertsForQuad3D(tempVerts,
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_maxs.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_mins.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_mins.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_maxs.y, worldBox.m_maxs.z),
+                                              shapeFaceColor);
+                        }
+                        // Check -X face (West)
+                        else if (impactNormal.x < -0.5f &&
+                            std::abs(impactPos.x - worldBox.m_mins.x) < EPSILON &&
+                            impactPos.y >= worldBox.m_mins.y - EPSILON && impactPos.y <= worldBox.m_maxs.y + EPSILON &&
+                            impactPos.z >= worldBox.m_mins.z - EPSILON && impactPos.z <= worldBox.m_maxs.z + EPSILON)
+                        {
+                            isHitBox = true;
+                            AddVertsForQuad3D(tempVerts,
+                                              Vec3(worldBox.m_mins.x, worldBox.m_mins.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_mins.x, worldBox.m_maxs.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_mins.x, worldBox.m_maxs.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_mins.x, worldBox.m_mins.y, worldBox.m_maxs.z),
+                                              shapeFaceColor);
+                        }
+                        // Check +Y face (North)
+                        else if (impactNormal.y > 0.5f &&
+                            std::abs(impactPos.y - worldBox.m_maxs.y) < EPSILON &&
+                            impactPos.x >= worldBox.m_mins.x - EPSILON && impactPos.x <= worldBox.m_maxs.x + EPSILON &&
+                            impactPos.z >= worldBox.m_mins.z - EPSILON && impactPos.z <= worldBox.m_maxs.z + EPSILON)
+                        {
+                            isHitBox = true;
+                            AddVertsForQuad3D(tempVerts,
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_maxs.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_maxs.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_mins.x, worldBox.m_maxs.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_mins.x, worldBox.m_maxs.y, worldBox.m_mins.z),
+                                              shapeFaceColor);
+                        }
+                        // Check -Y face (South)
+                        else if (impactNormal.y < -0.5f &&
+                            std::abs(impactPos.y - worldBox.m_mins.y) < EPSILON &&
+                            impactPos.x >= worldBox.m_mins.x - EPSILON && impactPos.x <= worldBox.m_maxs.x + EPSILON &&
+                            impactPos.z >= worldBox.m_mins.z - EPSILON && impactPos.z <= worldBox.m_maxs.z + EPSILON)
+                        {
+                            isHitBox = true;
+                            AddVertsForQuad3D(tempVerts,
+                                              Vec3(worldBox.m_mins.x, worldBox.m_mins.y, worldBox.m_mins.z),
+                                              Vec3(worldBox.m_mins.x, worldBox.m_mins.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_mins.y, worldBox.m_maxs.z),
+                                              Vec3(worldBox.m_maxs.x, worldBox.m_mins.y, worldBox.m_mins.z),
+                                              shapeFaceColor);
+                        }
+
+                        UNUSED(isHitBox);
+                    }
+                }
+            }
+        }
 
         // [NEW] Draw the hit point (red ball)
         Vec3  impactPos     = m_currentRaycast.m_impactPos;
